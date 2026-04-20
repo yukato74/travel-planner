@@ -19,6 +19,28 @@ export type Place = {
   sortOrder: number;
 };
 
+export type Flight = {
+  id: string;
+  tripId: string;
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureTime: string;
+  arrivalTime: string;
+  memo: string;
+};
+
+export type Hotel = {
+  id: string;
+  tripId: string;
+  name: string;
+  address: string;
+  checkInDate: string;
+  checkOutDate: string;
+  memo: string;
+};
+
 export type Note = {
   id: string;
   tripId: string;
@@ -37,6 +59,15 @@ export type CreateTripInput = {
   startDate: string;
   endDate: string;
   isShareProtected: boolean;
+};
+
+export type UpdateTripInput = {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  isShareProtected: boolean;
+  sharePassword: string;
 };
 
 export type CreatePlaceInput = {
@@ -63,8 +94,54 @@ export type PlaceOrderUpdate = {
   sortOrder: number;
 };
 
+export type CreateFlightInput = {
+  tripId: string;
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureTime: string;
+  arrivalTime: string;
+  memo: string;
+};
+
+export type UpdateFlightInput = {
+  id: string;
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  departureTime: string;
+  arrivalTime: string;
+  memo: string;
+};
+
+export type CreateHotelInput = {
+  tripId: string;
+  name: string;
+  address: string;
+  checkInDate: string;
+  checkOutDate: string;
+  memo: string;
+};
+
+export type UpdateHotelInput = {
+  id: string;
+  name: string;
+  address: string;
+  checkInDate: string;
+  checkOutDate: string;
+  memo: string;
+};
+
 export type CreateNoteInput = {
   tripId: string;
+  title: string;
+  content: string;
+};
+
+export type UpdateNoteInput = {
+  id: string;
   title: string;
   content: string;
 };

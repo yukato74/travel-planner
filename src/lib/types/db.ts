@@ -80,6 +80,94 @@ export type Database = {
           },
         ];
       };
+      flights: {
+        Row: {
+          id: string;
+          trip_id: string;
+          airline: string;
+          flight_number: string;
+          departure_airport: string;
+          arrival_airport: string;
+          departure_time: string;
+          arrival_time: string;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          airline: string;
+          flight_number: string;
+          departure_airport: string;
+          arrival_airport: string;
+          departure_time: string;
+          arrival_time: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          airline?: string;
+          flight_number?: string;
+          departure_airport?: string;
+          arrival_airport?: string;
+          departure_time?: string;
+          arrival_time?: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'flights_trip_id_fkey';
+            columns: ['trip_id'];
+            isOneToOne: false;
+            referencedRelation: 'trips';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      hotels: {
+        Row: {
+          id: string;
+          trip_id: string;
+          name: string;
+          address: string | null;
+          check_in_date: string;
+          check_out_date: string;
+          memo: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          name: string;
+          address?: string | null;
+          check_in_date: string;
+          check_out_date: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          name?: string;
+          address?: string | null;
+          check_in_date?: string;
+          check_out_date?: string;
+          memo?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'hotels_trip_id_fkey';
+            columns: ['trip_id'];
+            isOneToOne: false;
+            referencedRelation: 'trips';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notes: {
         Row: {
           id: string;

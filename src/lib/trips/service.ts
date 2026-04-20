@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { generateSharePassword } from '@/lib/share/access';
 import { Database } from '@/lib/types/db';
-import { CreateTripInput, TripSummary } from '@/lib/types/trip';
+import { CreateTripInput, TripSummary, UpdateTripInput } from '@/lib/types/trip';
 
 const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -70,6 +70,30 @@ export async function createTrip(
 
   if (error) {
     return { data: null, error: `旅行の作成に失敗しました: ${error.message}` };
+  }
+
+  return { data: mapTrip(data), error: null };
+}
+
+export async function updateTrip(
+  supabase: SupabaseClient<Database>,
+  input: UpdateTripInput,
+): Promise<{ data: TripSummary | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('trips')
+    .update({
+      title: input.title,
+      start_date: input.startDate,
+      end_date: input.endDate,
+      is_share_protected: input.isShareProtected,
+      share_password: input.sharePassword,
+    })
+    .eq('id', input.id)
+    .select('*')
+    .single();
+
+  if (error) {
+    return { data: null, error: `旅行情報の更新に失敗しました: ${error.message}` };
   }
 
   return { data: mapTrip(data), error: null };

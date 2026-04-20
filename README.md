@@ -1,19 +1,18 @@
 # Travel Planner
 
 Next.js App Router で作成した旅行プランナーです。  
-現在は **Supabase** をバックエンドとして、`trips / places / notes` の一覧表示と追加・編集・削除ができる実装です。
+Supabase をバックエンドとして、trip 詳細ページを中心に実用的な CRUD と共有保護を実装しています。
 
 ## プロジェクト概要
 
-- `/dashboard` で旅行一覧を Supabase から取得
-- `/dashboard` で新しい旅行を作成
-  - 入力: `title`, `start_date`, `end_date`
-  - 保存時: `share_password` を 6 桁英数字で自動生成
-- `/trip/[id]` で `trip / places / notes` を Supabase から取得
+- `/dashboard` で旅行一覧の表示・新規作成
+- `/trip/[id]` は以下の3タブ構成
+  - `Itinerary` : places を日付ごとに表示（追加・編集・削除・DnD 並び替え / 別日移動）
+  - `Flights & Hotels` : flights / hotels の一覧・追加・編集・削除
+  - `Notes` : notes の一覧・追加・編集・削除
+- trip ヘッダーの `Info` ボタンから基本情報を編集
+  - `title`, `start_date`, `end_date`, `is_share_protected`, `share_password`
 - 共有保護ありの旅行は 6 桁パスワード入力後に本文を表示（成功状態は `sessionStorage`）
-- `places` は visit_date ごとに表示し、旅行期間内の日付だけを表示
-- places は日付セクションごとの `Add place`、各行の `Edit / Delete` に対応
-- places は dnd-kit で日付内並び替え・別日付移動に対応（`visit_date` と `sort_order` を保存）
 
 ## 使用技術
 
@@ -22,13 +21,14 @@ Next.js App Router で作成した旅行プランナーです。
 - Tailwind CSS
 - MUI (Material UI)
 - Supabase (`@supabase/supabase-js`)
+- dnd-kit (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`)
 
 ## ページ構成
 
 - `/` : トップページ
 - `/login` : ログインページ（UIのみ）
 - `/dashboard` : 旅行一覧 + 新規旅行作成
-- `/trip/[id]` : 旅行詳細（places / notes の一覧 + 追加）
+- `/trip/[id]` : 旅行詳細（タブUI）
 
 ## 主要ディレクトリ構成
 
@@ -38,13 +38,20 @@ src/
     dashboard/page.tsx
     trip/[id]/page.tsx
   components/
-    places/PlacesSection.tsx
-    places/PlaceItem.tsx
-    trip/TripDetailView.tsx
+    places/
+      PlaceItem.tsx
+      PlacesSection.tsx
+    trip/
+      TripDetailView.tsx
+      TripInfoDialog.tsx
+      FlightsHotelsTab.tsx
+      NotesTab.tsx
   lib/
     supabase/client.ts
     trips/service.ts
     places/service.ts
+    flights/service.ts
+    hotels/service.ts
     notes/service.ts
     share/access.ts
     types/db.ts
@@ -86,18 +93,24 @@ npm run dev
   - `title`, `start_date`, `end_date`, `share_password`, `is_share_protected`
 - `places`
   - `trip_id`, `visit_date`, `name`, `address`, `memo`, `lat`, `lng`, `sort_order`
+- `flights`
+  - `trip_id`, `airline`, `flight_number`, `departure_airport`, `arrival_airport`, `departure_time`, `arrival_time`, `memo`
+- `hotels`
+  - `trip_id`, `name`, `address`, `check_in_date`, `check_out_date`, `memo`
 - `notes`
   - `trip_id`, `title`, `content`
 
 ## 現在の実装範囲
 
-- 旅行（trips）の編集・削除は未実装
-- places は追加・編集・削除・ドラッグ移動まで対応済み
-- itinerary / flights / hotels はプレースホルダー表示
+- trip 詳細ページのタブ化（Itinerary / Flights & Hotels / Notes）
+- Itinerary(places) の CRUD + DnD
+- Flights / Hotels / Notes の CRUD
+- trip Info 編集ダイアログ
+- itinerary（旧 separate セクション）は places に統合
 
 ## 将来拡張の想定
 
 - Supabase Auth 連携（ユーザー単位データ）
 - RLS のユーザー単位制御
-- trips / notes の編集・削除
+- 入力バリデーションの強化
 - Vercel へのデプロイと環境変数連携
