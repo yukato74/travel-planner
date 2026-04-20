@@ -25,7 +25,7 @@ export async function listHotelsByTripId(
     .order('check_in_date', { ascending: true });
 
   if (error) {
-    return { data: [], error: `ホテル一覧の取得に失敗しました: ${error.message}` };
+    return { data: [], error: `Failed to fetch hotels: ${error.message}` };
   }
 
   return { data: data.map(mapHotel), error: null };
@@ -49,7 +49,7 @@ export async function createHotel(
     .single();
 
   if (error) {
-    return { data: null, error: `ホテルの追加に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to create hotel: ${error.message}` };
   }
 
   return { data: mapHotel(data), error: null };
@@ -73,7 +73,7 @@ export async function updateHotel(
     .single();
 
   if (error) {
-    return { data: null, error: `ホテルの更新に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to update hotel: ${error.message}` };
   }
 
   return { data: mapHotel(data), error: null };
@@ -86,7 +86,7 @@ export async function deleteHotel(
   const { error } = await supabase.from('hotels').delete().eq('id', hotelId);
 
   if (error) {
-    return { error: `ホテルの削除に失敗しました: ${error.message}` };
+    return { error: `Failed to delete hotel: ${error.message}` };
   }
 
   return { error: null };

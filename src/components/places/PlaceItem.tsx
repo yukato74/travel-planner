@@ -49,7 +49,7 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
         <IconButton
           size="small"
           edge="start"
-          aria-label="ドラッグハンドル"
+          aria-label="Drag handle"
           {...attributes}
           {...listeners}
           disabled={disabled}
@@ -63,16 +63,16 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
             {place.name}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {place.address || '住所未設定'}
+            {place.address || 'No address'}
             {place.memo ? ` | ${place.memo}` : ''}
           </Typography>
         </Box>
 
         <Stack direction="row" spacing={0.5}>
-          <IconButton size="small" aria-label="編集" onClick={() => onEdit(place)} disabled={disabled}>
+          <IconButton size="small" aria-label="Edit" onClick={() => onEdit(place)} disabled={disabled}>
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" aria-label="削除" onClick={() => onDelete(place)} disabled={disabled}>
+          <IconButton size="small" aria-label="Delete" onClick={() => onDelete(place)} disabled={disabled}>
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>
         </Stack>

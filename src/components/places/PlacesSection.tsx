@@ -153,7 +153,7 @@ function DaySection({
           <List disablePadding>
             {places.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
-                この日の場所はまだありません。
+                No places for this day yet.
               </Typography>
             ) : (
               places.map((place) => (
@@ -275,7 +275,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     if (!addDate || !addName.trim()) {
-      setErrorMessage('Place name を入力してください。');
+      setErrorMessage('Please enter a place name.');
       return;
     }
 
@@ -304,7 +304,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setSaving(false);
 
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? '場所の追加に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to add place.');
       return;
     }
 
@@ -334,7 +334,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     if (!editingPlace || !editName.trim() || !dateOptions.includes(editVisitDate)) {
-      setErrorMessage('編集内容を確認してください。');
+      setErrorMessage('Please check the form values.');
       return;
     }
 
@@ -363,7 +363,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     if (updateResult.error || !updateResult.data) {
       setSaving(false);
-      setErrorMessage(updateResult.error ?? '場所の更新に失敗しました。');
+      setErrorMessage(updateResult.error ?? 'Failed to update place.');
       return;
     }
 
@@ -539,7 +539,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
   return (
     <Stack spacing={2}>
-      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -586,7 +586,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={handleSubmitEdit}>
-          <DialogTitle>Place を編集</DialogTitle>
+          <DialogTitle>Edit place</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />
@@ -619,9 +619,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       </Dialog>
 
       <Dialog open={canEdit && Boolean(deletingPlace)} onClose={() => setDeletingPlace(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Place を削除</DialogTitle>
+        <DialogTitle>Delete place</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">この place を削除します。よろしいですか？</Typography>
+          <Typography variant="body2">Are you sure you want to delete this place?</Typography>
           <Typography variant="subtitle2" mt={1}>
             {deletingPlace?.name}
           </Typography>

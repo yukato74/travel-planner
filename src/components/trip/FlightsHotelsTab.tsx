@@ -86,7 +86,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
   const handleAddFlight = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!addFlight.airline || !addFlight.flightNumber || !addFlight.departureTime || !addFlight.arrivalTime) {
-      setErrorMessage('Flights の必須項目を入力してください。');
+      setErrorMessage('Please fill in the required flight fields.');
       return;
     }
 
@@ -112,7 +112,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
     setSaving(false);
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'フライトの追加に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to add flight.');
       return;
     }
 
@@ -156,7 +156,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
     setSaving(false);
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'フライトの更新に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to update flight.');
       return;
     }
 
@@ -191,7 +191,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
   const handleAddHotel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!addHotel.name || !addHotel.checkInDate || !addHotel.checkOutDate) {
-      setErrorMessage('Hotels の必須項目を入力してください。');
+      setErrorMessage('Please fill in the required hotel fields.');
       return;
     }
 
@@ -215,7 +215,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
     setSaving(false);
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'ホテルの追加に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to add hotel.');
       return;
     }
 
@@ -249,7 +249,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
     setSaving(false);
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'ホテルの更新に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to update hotel.');
       return;
     }
 
@@ -291,7 +291,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
   return (
     <Stack spacing={2}>
-      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 2 }}>
@@ -336,7 +336,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
           <Divider />
 
           {flights.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">フライトはまだありません。</Typography>
+            <Typography variant="body2" color="text.secondary">No flights yet.</Typography>
           ) : (
             <Stack spacing={1}>
               {flights.map((flight) => (
@@ -400,7 +400,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
           <Divider />
 
           {hotels.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">ホテルはまだありません。</Typography>
+            <Typography variant="body2" color="text.secondary">No hotels yet.</Typography>
           ) : (
             <Stack spacing={1}>
               {hotels.map((hotel) => (
@@ -450,7 +450,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
       <Dialog open={canEdit && Boolean(deletingFlight)} onClose={() => setDeletingFlight(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete flight</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">この flight を削除します。よろしいですか？</Typography>
+          <Typography variant="body2">Are you sure you want to delete this flight?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeletingFlight(null)} color="inherit">Cancel</Button>
@@ -480,7 +480,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
       <Dialog open={canEdit && Boolean(deletingHotel)} onClose={() => setDeletingHotel(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete hotel</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">この hotel を削除します。よろしいですか？</Typography>
+          <Typography variant="body2">Are you sure you want to delete this hotel?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeletingHotel(null)} color="inherit">Cancel</Button>

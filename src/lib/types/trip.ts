@@ -1,5 +1,6 @@
 export type TripSummary = {
   id: string;
+  ownerUserId: string | null;
   title: string;
   startDate: string;
   endDate: string;

@@ -13,18 +13,19 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import { FormEvent, useEffect, useState } from 'react';
 import { updateTrip } from '@/lib/trips/service';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { TripSummary } from '@/lib/types/trip';
 
 type TripInfoDialogProps = {
   open: boolean;
   trip: TripSummary;
   shareUrl: string;
+  showShareInfo?: boolean;
   onClose: () => void;
   onUpdated: (trip: TripSummary) => void;
 };
 
-export function TripInfoDialog({ open, trip, shareUrl, onClose, onUpdated }: TripInfoDialogProps) {
+export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, onClose, onUpdated }: TripInfoDialogProps) {
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -50,18 +51,18 @@ export function TripInfoDialog({ open, trip, shareUrl, onClose, onUpdated }: Tri
     event.preventDefault();
 
     if (!title.trim() || !startDate || !endDate) {
-      setErrorMessage('title / start_date / end_date は必須です。');
+      setErrorMessage('Title, start date, and end date are required.');
       return;
     }
 
     if (startDate > endDate) {
-      setErrorMessage('start_date は end_date 以前にしてください。');
+      setErrorMessage('Start date must be before or equal to end date.');
       return;
     }
 
     const normalizedPassword = sharePassword.trim().toUpperCase();
     if (!/^[A-Z0-9]{6}$/.test(normalizedPassword)) {
-      setErrorMessage('share_password は英数字6桁で入力してください。');
+      setErrorMessage('Share password must be 6 alphanumeric characters.');
       return;
     }
 
@@ -86,7 +87,7 @@ export function TripInfoDialog({ open, trip, shareUrl, onClose, onUpdated }: Tri
     setSaving(false);
 
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? '旅行情報の更新に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to update trip info.');
       return;
     }
 
@@ -97,7 +98,7 @@ export function TripInfoDialog({ open, trip, shareUrl, onClose, onUpdated }: Tri
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <Box component="form" onSubmit={handleSubmit}>
-        <DialogTitle>Trip Info を編集</DialogTitle>
+        <DialogTitle>Edit trip info</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} mt={0.5}>
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -126,19 +127,24 @@ export function TripInfoDialog({ open, trip, shareUrl, onClose, onUpdated }: Tri
 
             <FormControlLabel
               control={<Switch checked={isShareProtected} onChange={(event) => setIsShareProtected(event.target.checked)} />}
-              label="is_share_protected"
+              label="Share protection"
             />
 
-            <TextField
-              label="Share password (6桁英数字)"
-              value={sharePassword}
-              onChange={(event) => setSharePassword(event.target.value.toUpperCase())}
-              inputProps={{ maxLength: 6 }}
-              required
-              fullWidth
-            />
+            {showShareInfo && (
+              <>
+                <TextField
+                  label="Share password"
+                  value={sharePassword}
+                  onChange={(event) => setSharePassword(event.target.value.toUpperCase())}
+                  inputProps={{ maxLength: 6 }}
+                  helperText="6 alphanumeric characters"
+                  required
+                  fullWidth
+                />
 
-            <TextField label="Share URL" value={shareUrl} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
+                <TextField label="Share URL" value={shareUrl} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
+              </>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>

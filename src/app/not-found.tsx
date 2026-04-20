@@ -9,11 +9,11 @@ export default function NotFoundPage() {
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Stack spacing={2}>
         <Typography variant="h4" fontWeight={700}>
-          ページが見つかりません
+          Page not found
         </Typography>
-        <Typography color="text.secondary">URLを確認するか、ダッシュボードから旅行を選択してください。</Typography>
+        <Typography color="text.secondary">Check the URL or choose a trip from the menu.</Typography>
         <Button component={Link} href="/dashboard" variant="contained">
-          ダッシュボードへ戻る
+          Back to dashboard
         </Button>
       </Stack>
     </Container>

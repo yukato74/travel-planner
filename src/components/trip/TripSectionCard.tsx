@@ -32,10 +32,10 @@ export function TripSectionCard({ title, description, children }: TripSectionCar
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
         <Button size="small" startIcon={<AddIcon fontSize="small" />}>
-          追加
+          Add
         </Button>
         <Button size="small" startIcon={<EditIcon fontSize="small" />}>
-          編集
+          Edit
         </Button>
       </CardActions>
     </Card>

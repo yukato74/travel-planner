@@ -22,7 +22,7 @@ export async function listNotesByTripId(
     .order('created_at', { ascending: true });
 
   if (error) {
-    return { data: [], error: `メモ一覧の取得に失敗しました: ${error.message}` };
+    return { data: [], error: `Failed to fetch notes: ${error.message}` };
   }
 
   return { data: data.map(mapNote), error: null };
@@ -43,7 +43,7 @@ export async function createNote(
     .single();
 
   if (error) {
-    return { data: null, error: `メモの追加に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to create note: ${error.message}` };
   }
 
   return { data: mapNote(data), error: null };
@@ -61,7 +61,7 @@ export async function updateNote(
     .single();
 
   if (error) {
-    return { data: null, error: `メモの更新に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to update note: ${error.message}` };
   }
 
   return { data: mapNote(data), error: null };
@@ -74,7 +74,7 @@ export async function deleteNote(
   const { error } = await supabase.from('notes').delete().eq('id', noteId);
 
   if (error) {
-    return { error: `メモの削除に失敗しました: ${error.message}` };
+    return { error: `Failed to delete note: ${error.message}` };
   }
 
   return { error: null };

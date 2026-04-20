@@ -65,12 +65,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     setErrorMessage(null);
 
     if (!title || !startDate || !endDate) {
-      setErrorMessage('タイトル・開始日・終了日を入力してください。');
+      setErrorMessage('Please fill in title, start date, and end date.');
       return;
     }
 
     if (startDate > endDate) {
-      setErrorMessage('開始日は終了日以前にしてください。');
+      setErrorMessage('Start date must be before or equal to end date.');
       return;
     }
 
@@ -91,7 +91,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     setSaving(false);
 
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? '旅行の作成に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to create trip.');
       return;
     }
 
@@ -107,22 +107,22 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       <Stack spacing={3}>
         <Stack spacing={0.75}>
           <Typography variant="h4" fontSize={{ xs: '1.7rem', md: '2rem' }} fontWeight={700}>
-            自分の旅行一覧
+            My trips
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            ログイン中ユーザーが作成した trips のみ表示します。
+            Only trips owned by your account are listed here.
           </Typography>
         </Stack>
 
         <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 } }}>
           <Stack component="form" spacing={2} onSubmit={handleCreateTrip}>
             <Typography variant="h6" fontWeight={700}>
-              新しい旅行を作成
+              Create a new trip
             </Typography>
             <Grid container spacing={1.5}>
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
-                  label="旅行タイトル"
+                  label="Trip title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   fullWidth
@@ -131,7 +131,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
                 <TextField
-                  label="開始日"
+                  label="Start date"
                   type="date"
                   value={startDate}
                   onChange={(event) => setStartDate(event.target.value)}
@@ -142,7 +142,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
                 <TextField
-                  label="終了日"
+                  label="End date"
                   type="date"
                   value={endDate}
                   onChange={(event) => setEndDate(event.target.value)}
@@ -159,14 +159,14 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                       onChange={(event) => setIsShareProtected(event.target.checked)}
                     />
                   }
-                  label="共有保護"
+                  label="Protected"
                 />
               </Grid>
             </Grid>
 
             <Stack direction="row" justifyContent="flex-end">
               <Button type="submit" variant="contained" startIcon={<AddIcon />} disabled={saving}>
-                {saving ? '保存中...' : '保存する'}
+                {saving ? 'Saving...' : 'Save trip'}
               </Button>
             </Stack>
           </Stack>
@@ -194,7 +194,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         <Chip
                           icon={trip.isShareProtected ? <LockIcon /> : <PublicIcon />}
-                          label={trip.isShareProtected ? '共有保護あり' : '公開共有'}
+                          label={trip.isShareProtected ? 'Protected share' : 'Public share'}
                           size="small"
                           color={trip.isShareProtected ? 'warning' : 'success'}
                         />
@@ -204,7 +204,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                   </CardContent>
                   <CardActions sx={{ px: 2, pb: 2 }}>
                     <Button component={Link} href={`/trip/${trip.id}`} variant="outlined" size="small">
-                      詳細を見る
+                      Open trip
                     </Button>
                   </CardActions>
                 </Card>

@@ -1,14 +1,9 @@
 'use client';
 
-import EditIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
@@ -41,9 +36,8 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const [inputPassword, setInputPassword] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlockErrorMessage, setUnlockErrorMessage] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
 
+  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -83,7 +77,6 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   useEffect(() => {
     const { client } = getSupabaseBrowserClient();
     if (!client) {
-      setCanEdit(false);
       return;
     }
 
@@ -92,7 +85,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     const fetchUser = async () => {
       const result = await client.auth.getUser();
       if (mounted) {
-        setCanEdit(Boolean(result.data.user));
+        setViewerUserId(result.data.user?.id ?? null);
       }
     };
 
@@ -101,7 +94,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event: string, session: Session | null) => {
-      setCanEdit(Boolean(session?.user));
+      setViewerUserId(session?.user?.id ?? null);
     });
 
     return () => {
@@ -109,6 +102,34 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const openInfoHandler = () => {
+      if (!trip) {
+        return;
+      }
+      if (viewerUserId && trip.ownerUserId === viewerUserId) {
+        setIsInfoOpen(true);
+      }
+    };
+
+    window.addEventListener('open-trip-info-dialog', openInfoHandler);
+    return () => {
+      window.removeEventListener('open-trip-info-dialog', openInfoHandler);
+    };
+  }, [trip, viewerUserId]);
+
+  useEffect(() => {
+    if (!trip) {
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent('trip-context', {
+        detail: { tripId: trip.id, title: trip.title },
+      }),
+    );
+  }, [trip]);
 
   useEffect(() => {
     if (!trip) {
@@ -137,7 +158,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       return;
     }
 
-    setUnlockErrorMessage('パスワードが一致しません。もう一度入力してください。');
+    setUnlockErrorMessage('Incorrect password. Please try again.');
   };
 
   if (loading) {
@@ -155,11 +176,11 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       <Container maxWidth="sm" sx={{ py: 6 }}>
         <Stack spacing={2}>
           <Typography variant="h5" fontWeight={700}>
-            指定された旅行が見つかりません
+            Trip not found
           </Typography>
-          <Typography color="text.secondary">URLを確認するか、ダッシュボードから旅行を選択してください。</Typography>
+          <Typography color="text.secondary">Check the URL or choose another trip from the menu.</Typography>
           <Button component={Link} href="/dashboard" variant="contained">
-            ダッシュボードへ戻る
+            Back to dashboard
           </Button>
         </Stack>
       </Container>
@@ -169,85 +190,40 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   if (!trip) {
     return (
       <Container maxWidth="sm" sx={{ py: 6 }}>
-        <Alert severity="error">旅行データを読み込めませんでした。</Alert>
+        <Alert severity="error">Failed to load trip.</Alert>
       </Container>
     );
   }
 
   const needsPassword = requiresSharePassword(trip);
   const dateOptions = enumerateDateRange(trip.startDate, trip.endDate);
+  const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
   const shareUrl = buildTripShareUrl(trip.id);
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-      <Stack spacing={3}>
-        <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
-          <Stack spacing={1.5}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} gap={1}>
-              <Typography variant="h4" fontSize={{ xs: '1.6rem', md: '2rem' }} fontWeight={700}>
-                {trip.title}
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <Chip label={needsPassword ? '共有保護あり' : '共有保護なし'} color={needsPassword ? 'warning' : 'success'} />
-                <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => setIsInfoOpen(true)} disabled={!canEdit}>
-                  Info
-                </Button>
-              </Stack>
-            </Stack>
-
-            <Typography variant="body1" color="text.secondary">
-              旅行期間: {trip.startDate} - {trip.endDate}
-            </Typography>
-
-            <Divider />
-
-            <Stack spacing={1.5}>
-              <TextField label="共有URL" value={shareUrl} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
-
-              {needsPassword && (
-                <Stack direction={{ xs: 'column', sm: 'row' }} gap={1.5} alignItems={{ xs: 'stretch', sm: 'center' }}>
-                  <TextField
-                    label="共有パスワード (6桁)"
-                    value={showPassword ? trip.sharePassword : '••••••'}
-                    size="small"
-                    slotProps={{ input: { readOnly: true } }}
-                    sx={{ maxWidth: 280 }}
-                  />
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    startIcon={showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  >
-                    {showPassword ? '非表示にする' : '表示する'}
-                  </Button>
-                </Stack>
-              )}
-            </Stack>
-          </Stack>
-        </Paper>
-
+    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
+      <Stack spacing={2}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {needsPassword && !isUnlocked ? (
           <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
             <Stack spacing={2} maxWidth={420}>
               <Typography variant="h6" fontWeight={700}>
-                共有パスワードの入力
+                Enter share password
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                この旅行プランは保護されています。URL発行者から受け取った6桁パスワードを入力してください。
+                This trip is protected. Enter the 6-character password to continue.
               </Typography>
               <TextField
-                label="6桁パスワード"
+                label="Share password"
                 value={inputPassword}
                 onChange={(event) => setInputPassword(event.target.value.toUpperCase())}
                 inputProps={{ maxLength: 6 }}
                 error={Boolean(unlockErrorMessage)}
-                helperText={unlockErrorMessage || '英数字6桁'}
+                helperText={unlockErrorMessage || 'Use 6 alphanumeric characters'}
               />
               <Button variant="contained" onClick={handleUnlock}>
-                閲覧する
+                Unlock
               </Button>
             </Stack>
           </Paper>
@@ -266,9 +242,9 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             </Tabs>
 
             <Stack sx={{ p: { xs: 1.5, md: 2 } }}>
-              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />}
-              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={canEdit} />}
-              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
+              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={isOwner} />}
+              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={isOwner} />}
+              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={isOwner} />}
             </Stack>
           </Paper>
         )}
@@ -277,6 +253,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
           open={isInfoOpen}
           trip={trip}
           shareUrl={shareUrl}
+          showShareInfo={isOwner}
           onClose={() => setIsInfoOpen(false)}
           onUpdated={(updatedTrip) => setTrip(updatedTrip)}
         />

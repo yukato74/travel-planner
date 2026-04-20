@@ -27,7 +27,7 @@ export async function listFlightsByTripId(
     .order('departure_time', { ascending: true });
 
   if (error) {
-    return { data: [], error: `フライト一覧の取得に失敗しました: ${error.message}` };
+    return { data: [], error: `Failed to fetch flights: ${error.message}` };
   }
 
   return { data: data.map(mapFlight), error: null };
@@ -53,7 +53,7 @@ export async function createFlight(
     .single();
 
   if (error) {
-    return { data: null, error: `フライトの追加に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to create flight: ${error.message}` };
   }
 
   return { data: mapFlight(data), error: null };
@@ -79,7 +79,7 @@ export async function updateFlight(
     .single();
 
   if (error) {
-    return { data: null, error: `フライトの更新に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to update flight: ${error.message}` };
   }
 
   return { data: mapFlight(data), error: null };
@@ -92,7 +92,7 @@ export async function deleteFlight(
   const { error } = await supabase.from('flights').delete().eq('id', flightId);
 
   if (error) {
-    return { error: `フライトの削除に失敗しました: ${error.message}` };
+    return { error: `Failed to delete flight: ${error.message}` };
   }
 
   return { error: null };

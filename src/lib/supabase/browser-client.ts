@@ -12,7 +12,7 @@ export function getSupabaseBrowserClient() {
   if (!supabaseUrl || !supabaseAnonKey) {
     return {
       client: null,
-      error: '環境変数 NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY が未設定です。',
+      error: 'Environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required.',
     };
   }
 

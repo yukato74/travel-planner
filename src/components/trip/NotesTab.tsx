@@ -63,7 +63,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     event.preventDefault();
 
     if (!title.trim() || !content.trim()) {
-      setErrorMessage('title と content は必須です。');
+      setErrorMessage('Title and content are required.');
       return;
     }
 
@@ -85,7 +85,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     setSaving(false);
 
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'メモの追加に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to add note.');
       return;
     }
 
@@ -101,7 +101,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     }
 
     if (!editingNote.title.trim() || !editingNote.content.trim()) {
-      setErrorMessage('title と content は必須です。');
+      setErrorMessage('Title and content are required.');
       return;
     }
 
@@ -123,7 +123,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     setSaving(false);
 
     if (result.error || !result.data) {
-      setErrorMessage(result.error ?? 'メモの更新に失敗しました。');
+      setErrorMessage(result.error ?? 'Failed to update note.');
       return;
     }
 
@@ -166,14 +166,14 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   return (
     <Stack spacing={2}>
-      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       {canEdit && (
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Box component="form" onSubmit={handleAdd}>
           <Stack spacing={1.25}>
-            <Typography variant="h6" fontWeight={700}>Note を追加</Typography>
+            <Typography variant="h6" fontWeight={700}>Add note</Typography>
             <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth size="small" />
             <TextField
               label="Content"
@@ -200,7 +200,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
           <Typography variant="h6" fontWeight={700}>Notes</Typography>
           <Divider />
           {notes.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">まだメモがありません。</Typography>
+            <Typography variant="body2" color="text.secondary">No notes yet.</Typography>
           ) : (
             <List disablePadding>
               {notes.map((note) => (
@@ -258,7 +258,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       <Dialog open={canEdit && Boolean(deletingNote)} onClose={() => setDeletingNote(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete note</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">この note を削除します。よろしいですか？</Typography>
+          <Typography variant="body2">Are you sure you want to delete this note?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeletingNote(null)} color="inherit">Cancel</Button>

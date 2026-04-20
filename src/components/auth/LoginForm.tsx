@@ -45,28 +45,28 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     setLoading(false);
 
     if (signInError) {
-      setErrorMessage(`Magic Link の送信に失敗しました: ${signInError.message}`);
+      setErrorMessage(`Failed to send magic link: ${signInError.message}`);
       return;
     }
 
-    setSuccessMessage('Magic Link を送信しました。メール内のリンクからログインしてください。');
+    setSuccessMessage('Magic link sent. Check your inbox and open the link to sign in.');
   };
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
       <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
         <Typography variant="h5" fontWeight={700}>
-          ログイン
+          Login
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          メールアドレスへ Magic Link を送信します。
+          Enter your email to receive a magic link.
         </Typography>
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
         <TextField
-          label="メールアドレス"
+          label="Email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -76,10 +76,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="space-between">
           <Button component={Link} href="/" variant="text">
-            トップへ戻る
+            Back
           </Button>
           <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? '送信中...' : 'Magic Link を送信'}
+            {loading ? 'Sending...' : 'Send Magic Link'}
           </Button>
         </Stack>
       </Stack>

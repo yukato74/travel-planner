@@ -28,7 +28,7 @@ export async function listPlacesByTripId(
     .order('sort_order', { ascending: true });
 
   if (error) {
-    return { data: [], error: `場所一覧の取得に失敗しました: ${error.message}` };
+    return { data: [], error: `Failed to fetch places: ${error.message}` };
   }
 
   return { data: data.map(mapPlace), error: null };
@@ -54,7 +54,7 @@ export async function addPlace(
     .single();
 
   if (error) {
-    return { data: null, error: `場所の追加に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to create place: ${error.message}` };
   }
 
   return { data: mapPlace(data), error: null };
@@ -78,7 +78,7 @@ export async function updatePlace(
     .single();
 
   if (error) {
-    return { data: null, error: `場所の更新に失敗しました: ${error.message}` };
+    return { data: null, error: `Failed to update place: ${error.message}` };
   }
 
   return { data: mapPlace(data), error: null };
@@ -91,7 +91,7 @@ export async function deletePlace(
   const { error } = await supabase.from('places').delete().eq('id', placeId);
 
   if (error) {
-    return { error: `場所の削除に失敗しました: ${error.message}` };
+    return { error: `Failed to delete place: ${error.message}` };
   }
 
   return { error: null };
@@ -111,7 +111,7 @@ export async function reorderPlaces(
       .eq('id', update.id);
 
     if (error) {
-      return { error: `場所の並び順保存に失敗しました: ${error.message}` };
+      return { error: `Failed to save place order: ${error.message}` };
     }
   }
 
