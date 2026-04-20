@@ -4,6 +4,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
+import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -12,6 +13,7 @@ import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
@@ -128,8 +130,17 @@ export function AppHeader() {
     router.refresh();
   };
 
-  const openInfoDialog = () => {
-    window.dispatchEvent(new Event('open-trip-info-dialog'));
+  const openInfoDialogForTrip = (tripId: string) => {
+    if (currentTripId === tripId) {
+      window.dispatchEvent(
+        new CustomEvent('open-trip-info-dialog', {
+          detail: { tripId },
+        }),
+      );
+    } else {
+      sessionStorage.setItem('open-trip-info-id', tripId);
+      router.push(`/trip/${tripId}`);
+    }
     setDrawerOpen(false);
   };
 
@@ -180,19 +191,28 @@ export function AppHeader() {
             ) : (
               <List disablePadding>
                 {trips.map((trip) => (
-                  <ListItemButton
-                    key={trip.id}
-                    selected={trip.id === currentTripId}
-                    onClick={() => {
-                      setDrawerOpen(false);
-                      router.push(`/trip/${trip.id}`);
-                    }}
-                  >
-                    <ListItemText
-                      primary={trip.title}
-                      secondary={`${trip.startDate} - ${trip.endDate}`}
-                    />
-                  </ListItemButton>
+                  <ListItem key={trip.id} disablePadding secondaryAction={
+                    <IconButton
+                      edge="end"
+                      aria-label={`Info for ${trip.title}`}
+                      onClick={() => openInfoDialogForTrip(trip.id)}
+                    >
+                      <InfoOutlinedIcon />
+                    </IconButton>
+                  }>
+                    <ListItemButton
+                      selected={trip.id === currentTripId}
+                      onClick={() => {
+                        setDrawerOpen(false);
+                        router.push(`/trip/${trip.id}`);
+                      }}
+                    >
+                      <ListItemText
+                        primary={trip.title}
+                        secondary={`${trip.startDate} - ${trip.endDate}`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
                 ))}
 
                 {userId && trips.length === 0 && (
@@ -210,12 +230,12 @@ export function AppHeader() {
 
           <Stack spacing={1} sx={{ p: 2 }}>
             <Button
+              href="/dashboard"
               variant="outlined"
-              startIcon={<InfoOutlinedIcon />}
-              disabled={!currentTrip || !userId}
-              onClick={openInfoDialog}
+              startIcon={<AddIcon />}
+              onClick={() => setDrawerOpen(false)}
             >
-              Info
+              New Trip
             </Button>
 
             {userId ? (

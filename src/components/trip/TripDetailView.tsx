@@ -104,8 +104,13 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   }, []);
 
   useEffect(() => {
-    const openInfoHandler = () => {
+    const openInfoHandler = (event: Event) => {
       if (!trip) {
+        return;
+      }
+      const customEvent = event as CustomEvent<{ tripId?: string }>;
+      const targetTripId = customEvent.detail?.tripId;
+      if (targetTripId && targetTripId !== trip.id) {
         return;
       }
       if (viewerUserId && trip.ownerUserId === viewerUserId) {
@@ -117,6 +122,18 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     return () => {
       window.removeEventListener('open-trip-info-dialog', openInfoHandler);
     };
+  }, [trip, viewerUserId]);
+
+  useEffect(() => {
+    if (!trip || !viewerUserId || trip.ownerUserId !== viewerUserId) {
+      return;
+    }
+
+    const pendingTripId = sessionStorage.getItem('open-trip-info-id');
+    if (pendingTripId === trip.id) {
+      setIsInfoOpen(true);
+      sessionStorage.removeItem('open-trip-info-id');
+    }
   }, [trip, viewerUserId]);
 
   useEffect(() => {
