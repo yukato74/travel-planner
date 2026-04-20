@@ -1,55 +1,55 @@
-export type ItineraryItem = {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-};
-
-export type FlightItem = {
-  id: string;
-  direction: 'outbound' | 'return';
-  airline: string;
-  flightNumber: string;
-  departure: string;
-  arrival: string;
-};
-
-export type HotelItem = {
-  id: string;
-  name: string;
-  checkIn: string;
-  checkOut: string;
-  address: string;
-};
-
-export type PlaceItem = {
-  id: string;
-  name: string;
-  area: string;
-  memo?: string;
-};
-
-export type NoteItem = {
-  id: string;
-  content: string;
-};
-
-export type TripShareSettings = {
-  enabled: boolean;
-  requiresPassword: boolean;
-  password?: string;
-};
-
-export type Trip = {
+export type TripSummary = {
   id: string;
   title: string;
   startDate: string;
   endDate: string;
-  summary: string;
-  share: TripShareSettings;
-  itinerary: ItineraryItem[];
-  flights: FlightItem[];
-  hotels: HotelItem[];
-  places: PlaceItem[];
-  notes: NoteItem[];
+  sharePassword: string;
+  isShareProtected: boolean;
+};
+
+export type Place = {
+  id: string;
+  tripId: string;
+  visitDate: string;
+  name: string;
+  address: string;
+  memo: string;
+  lat: number | null;
+  lng: number | null;
+  sortOrder: number;
+};
+
+export type Note = {
+  id: string;
+  tripId: string;
+  title: string;
+  content: string;
+};
+
+export type TripDetail = {
+  trip: TripSummary;
+  places: Place[];
+  notes: Note[];
+};
+
+export type CreateTripInput = {
+  title: string;
+  startDate: string;
+  endDate: string;
+  isShareProtected: boolean;
+};
+
+export type CreatePlaceInput = {
+  tripId: string;
+  visitDate: string;
+  name: string;
+  address: string;
+  memo: string;
+  sortOrder: number;
+};
+
+export type CreateNoteInput = {
+  tripId: string;
+  title: string;
+  content: string;
 };
