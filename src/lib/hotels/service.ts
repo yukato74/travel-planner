@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreateHotelInput, Hotel, UpdateHotelInput } from '@/lib/types/trip';
 
@@ -15,7 +15,7 @@ function mapHotel(row: Database['public']['Tables']['hotels']['Row']): Hotel {
 }
 
 export async function listHotelsByTripId(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   tripId: string,
 ): Promise<{ data: Hotel[]; error: string | null }> {
   const { data, error } = await supabase
@@ -32,7 +32,7 @@ export async function listHotelsByTripId(
 }
 
 export async function createHotel(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: CreateHotelInput,
 ): Promise<{ data: Hotel | null; error: string | null }> {
   const { data, error } = await supabase
@@ -56,7 +56,7 @@ export async function createHotel(
 }
 
 export async function updateHotel(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: UpdateHotelInput,
 ): Promise<{ data: Hotel | null; error: string | null }> {
   const { data, error } = await supabase
@@ -80,7 +80,7 @@ export async function updateHotel(
 }
 
 export async function deleteHotel(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   hotelId: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.from('hotels').delete().eq('id', hotelId);

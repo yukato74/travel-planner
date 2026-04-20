@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreateNoteInput, Note, UpdateNoteInput } from '@/lib/types/trip';
 
@@ -12,7 +12,7 @@ function mapNote(row: Database['public']['Tables']['notes']['Row']): Note {
 }
 
 export async function listNotesByTripId(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   tripId: string,
 ): Promise<{ data: Note[]; error: string | null }> {
   const { data, error } = await supabase
@@ -29,7 +29,7 @@ export async function listNotesByTripId(
 }
 
 export async function createNote(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: CreateNoteInput,
 ): Promise<{ data: Note | null; error: string | null }> {
   const { data, error } = await supabase
@@ -50,7 +50,7 @@ export async function createNote(
 }
 
 export async function updateNote(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: UpdateNoteInput,
 ): Promise<{ data: Note | null; error: string | null }> {
   const { data, error } = await supabase
@@ -68,7 +68,7 @@ export async function updateNote(
 }
 
 export async function deleteNote(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   noteId: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.from('notes').delete().eq('id', noteId);

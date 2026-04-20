@@ -34,12 +34,13 @@ import Typography from '@mui/material/Typography';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { Place, PlaceOrderUpdate } from '@/lib/types/trip';
 
 type PlacesSectionProps = {
   tripId: string;
   dateOptions: string[];
+  canEdit?: boolean;
 };
 
 type DaySectionProps = {
@@ -50,6 +51,7 @@ type DaySectionProps = {
   addAddress: string;
   addMemo: string;
   saving: boolean;
+  canEdit: boolean;
   onOpenAdd: (date: string) => void;
   onCloseAdd: () => void;
   onChangeAddName: (value: string) => void;
@@ -68,6 +70,7 @@ function DaySection({
   addAddress,
   addMemo,
   saving,
+  canEdit,
   onOpenAdd,
   onCloseAdd,
   onChangeAddName,
@@ -91,8 +94,8 @@ function DaySection({
       variant="outlined"
       sx={{
         p: 1.5,
-        borderColor: isOver ? 'primary.main' : 'divider',
-        bgcolor: isOver ? 'action.hover' : 'background.paper',
+        borderColor: isOver && canEdit ? 'primary.main' : 'divider',
+        bgcolor: isOver && canEdit ? 'action.hover' : 'background.paper',
       }}
     >
       <Stack spacing={1.25}>
@@ -100,12 +103,12 @@ function DaySection({
           <Typography variant="subtitle2" fontWeight={700}>
             {date}
           </Typography>
-          <Button size="small" startIcon={<AddIcon />} onClick={() => onOpenAdd(date)} disabled={saving}>
+          <Button size="small" startIcon={<AddIcon />} onClick={() => onOpenAdd(date)} disabled={saving || !canEdit}>
             Add place
           </Button>
         </Stack>
 
-        {isAddOpen && (
+        {canEdit && isAddOpen && (
           <Box component="form" onSubmit={onSubmitAdd}>
             <Stack spacing={1}>
               <TextField
@@ -153,7 +156,9 @@ function DaySection({
                 この日の場所はまだありません。
               </Typography>
             ) : (
-              places.map((place) => <PlaceItem key={place.id} place={place} onEdit={onEdit} onDelete={onDelete} disabled={saving} />)
+              places.map((place) => (
+                <PlaceItem key={place.id} place={place} onEdit={onEdit} onDelete={onDelete} disabled={saving || !canEdit} />
+              ))
             )}
           </List>
         </SortableContext>
@@ -162,7 +167,7 @@ function DaySection({
   );
 }
 
-export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
+export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSectionProps) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -265,6 +270,9 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
 
   const handleSubmitAdd = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
 
     if (!addDate || !addName.trim()) {
       setErrorMessage('Place name を入力してください。');
@@ -308,6 +316,10 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
   };
 
   const openEditDialog = (place: Place) => {
+    if (!canEdit) {
+      return;
+    }
+
     setEditingPlace(place);
     setEditName(place.name);
     setEditAddress(place.address);
@@ -317,6 +329,9 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
 
   const handleSubmitEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
 
     if (!editingPlace || !editName.trim() || !dateOptions.includes(editVisitDate)) {
       setErrorMessage('編集内容を確認してください。');
@@ -324,10 +339,8 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
     }
 
     const oldDate = editingPlace.visitDate;
-
     const currentTargetPlaces = (groupedPlaces.get(editVisitDate) ?? []).filter((place) => place.id !== editingPlace.id);
-    const sortOrderForUpdate =
-      editVisitDate === oldDate ? editingPlace.sortOrder : currentTargetPlaces.length + 1;
+    const sortOrderForUpdate = editVisitDate === oldDate ? editingPlace.sortOrder : currentTargetPlaces.length + 1;
 
     setSaving(true);
     setErrorMessage(null);
@@ -365,10 +378,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
         .sort((a, b) => a.sortOrder - b.sortOrder);
       const ordered = buildOrderedDay(date, dayPlaces);
 
-      nextPlaces = nextPlaces.map((place) => {
-        const updated = ordered.find((item) => item.id === place.id);
-        return updated ?? place;
-      });
+      nextPlaces = nextPlaces.map((place) => ordered.find((item) => item.id === place.id) ?? place);
 
       reorderUpdates.push(...ordered.map((place) => ({ id: place.id, visitDate: place.visitDate, sortOrder: place.sortOrder })));
     }
@@ -385,7 +395,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
   };
 
   const handleDelete = async () => {
-    if (!deletingPlace) {
+    if (!canEdit || !deletingPlace) {
       return;
     }
 
@@ -412,11 +422,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
       .sort((a, b) => a.sortOrder - b.sortOrder);
     const ordered = buildOrderedDay(deletingPlace.visitDate, dayPlaces);
 
-    const nextPlaces = remaining.map((place) => {
-      const updated = ordered.find((item) => item.id === place.id);
-      return updated ?? place;
-    });
-
+    const nextPlaces = remaining.map((place) => ordered.find((item) => item.id === place.id) ?? place);
     setPlaces(nextPlaces);
 
     const reorderUpdates = ordered.map((place) => ({
@@ -436,10 +442,18 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (!canEdit) {
+      return;
+    }
     setActivePlaceId(String(event.active.id));
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canEdit) {
+      setActivePlaceId(null);
+      return;
+    }
+
     const { active, over } = event;
     setActivePlaceId(null);
 
@@ -464,10 +478,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
 
     const dayMap = new Map<string, Place[]>();
     for (const day of dateOptions) {
-      dayMap.set(
-        day,
-        (groupedPlaces.get(day) ?? []).map((place) => ({ ...place })),
-      );
+      dayMap.set(day, (groupedPlaces.get(day) ?? []).map((place) => ({ ...place })));
     }
 
     const sourceItems = dayMap.get(sourceDate) ?? [];
@@ -487,12 +498,10 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
       const withoutActive = sourceItems.filter((place) => place.id !== activeItem.id);
       const movedItem = { ...activeItem, visitDate: targetDate };
 
-      const insertIndex = overPlace
-        ? targetItems.findIndex((place) => place.id === overPlace.id)
-        : targetItems.length;
+      const insertIndex = overPlace ? targetItems.findIndex((place) => place.id === overPlace.id) : targetItems.length;
+      const safeIndex = insertIndex < 0 ? targetItems.length : insertIndex;
 
       const nextTarget = [...targetItems];
-      const safeIndex = insertIndex < 0 ? targetItems.length : insertIndex;
       nextTarget.splice(safeIndex, 0, movedItem);
 
       dayMap.set(sourceDate, withoutActive);
@@ -530,6 +539,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
 
   return (
     <Stack spacing={2}>
+      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -544,6 +554,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
                 addAddress={addAddress}
                 addMemo={addMemo}
                 saving={saving}
+                canEdit={canEdit}
                 onOpenAdd={(selectedDate) => {
                   setAddDate(selectedDate);
                   setAddName('');
@@ -573,30 +584,20 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
         </DragOverlay>
       </DndContext>
 
-      <Dialog open={Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={handleSubmitEdit}>
           <DialogTitle>Place を編集</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />
-              <TextField
-                select
-                label="visit_date"
-                value={editVisitDate}
-                onChange={(event) => setEditVisitDate(event.target.value)}
-                required
-              >
+              <TextField select label="visit_date" value={editVisitDate} onChange={(event) => setEditVisitDate(event.target.value)} required>
                 {dateOptions.map((date) => (
                   <MenuItem key={date} value={date}>
                     {date}
                   </MenuItem>
                 ))}
               </TextField>
-              <TextField
-                label="Address (optional)"
-                value={editAddress}
-                onChange={(event) => setEditAddress(event.target.value)}
-              />
+              <TextField label="Address (optional)" value={editAddress} onChange={(event) => setEditAddress(event.target.value)} />
               <TextField
                 label="Memo (optional)"
                 value={editMemo}
@@ -617,7 +618,7 @@ export function PlacesSection({ tripId, dateOptions }: PlacesSectionProps) {
         </Box>
       </Dialog>
 
-      <Dialog open={Boolean(deletingPlace)} onClose={() => setDeletingPlace(null)} fullWidth maxWidth="xs">
+      <Dialog open={canEdit && Boolean(deletingPlace)} onClose={() => setDeletingPlace(null)} fullWidth maxWidth="xs">
         <DialogTitle>Place を削除</DialogTitle>
         <DialogContent>
           <Typography variant="body2">この place を削除します。よろしいですか？</Typography>

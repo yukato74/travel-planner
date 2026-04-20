@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreatePlaceInput, Place, PlaceOrderUpdate, UpdatePlaceInput } from '@/lib/types/trip';
 
@@ -17,7 +17,7 @@ function mapPlace(row: Database['public']['Tables']['places']['Row']): Place {
 }
 
 export async function listPlacesByTripId(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   tripId: string,
 ): Promise<{ data: Place[]; error: string | null }> {
   const { data, error } = await supabase
@@ -35,7 +35,7 @@ export async function listPlacesByTripId(
 }
 
 export async function addPlace(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: CreatePlaceInput,
 ): Promise<{ data: Place | null; error: string | null }> {
   const { data, error } = await supabase
@@ -61,7 +61,7 @@ export async function addPlace(
 }
 
 export async function updatePlace(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: UpdatePlaceInput,
 ): Promise<{ data: Place | null; error: string | null }> {
   const { data, error } = await supabase
@@ -85,7 +85,7 @@ export async function updatePlace(
 }
 
 export async function deletePlace(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   placeId: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.from('places').delete().eq('id', placeId);
@@ -98,7 +98,7 @@ export async function deletePlace(
 }
 
 export async function reorderPlaces(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   updates: PlaceOrderUpdate[],
 ): Promise<{ error: string | null }> {
   for (const update of updates) {

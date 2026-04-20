@@ -23,9 +23,10 @@ import { Note } from '@/lib/types/trip';
 
 type NotesTabProps = {
   tripId: string;
+  canEdit?: boolean;
 };
 
-export function NotesTab({ tripId }: NotesTabProps) {
+export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -165,8 +166,10 @@ export function NotesTab({ tripId }: NotesTabProps) {
 
   return (
     <Stack spacing={2}>
+      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+      {canEdit && (
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Box component="form" onSubmit={handleAdd}>
           <Stack spacing={1.25}>
@@ -190,6 +193,7 @@ export function NotesTab({ tripId }: NotesTabProps) {
           </Stack>
         </Box>
       </Paper>
+      )}
 
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Stack spacing={1}>
@@ -203,10 +207,12 @@ export function NotesTab({ tripId }: NotesTabProps) {
                 <ListItem key={note.id} disablePadding sx={{ py: 1 }}>
                   <Stack width="100%" spacing={0.5}>
                     <ListItemText primary={note.title} secondary={note.content} />
-                    <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                      <Button size="small" onClick={() => setEditingNote(note)}>Edit</Button>
-                      <Button size="small" color="error" onClick={() => setDeletingNote(note)}>Delete</Button>
-                    </Stack>
+                    {canEdit && (
+                      <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                        <Button size="small" onClick={() => setEditingNote(note)}>Edit</Button>
+                        <Button size="small" color="error" onClick={() => setDeletingNote(note)}>Delete</Button>
+                      </Stack>
+                    )}
                   </Stack>
                 </ListItem>
               ))}
@@ -215,7 +221,7 @@ export function NotesTab({ tripId }: NotesTabProps) {
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={handleSaveEdit}>
           <DialogTitle>Edit note</DialogTitle>
           <DialogContent>
@@ -249,7 +255,7 @@ export function NotesTab({ tripId }: NotesTabProps) {
         </Box>
       </Dialog>
 
-      <Dialog open={Boolean(deletingNote)} onClose={() => setDeletingNote(null)} fullWidth maxWidth="xs">
+      <Dialog open={canEdit && Boolean(deletingNote)} onClose={() => setDeletingNote(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete note</DialogTitle>
         <DialogContent>
           <Typography variant="body2">この note を削除します。よろしいですか？</Typography>

@@ -17,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.8",
     "next": "^15.4.0",
     "react": "^19.1.0",

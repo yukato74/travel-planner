@@ -2,6 +2,7 @@ create extension if not exists "pgcrypto";
 
 create table if not exists public.trips (
   id uuid primary key default gen_random_uuid(),
+  owner_user_id uuid references auth.users(id) on delete set null,
   title text not null,
   start_date date not null,
   end_date date not null,
@@ -10,6 +11,9 @@ create table if not exists public.trips (
   created_at timestamptz not null default now(),
   constraint trips_date_range_check check (start_date <= end_date)
 );
+
+alter table public.trips
+  add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 
 create table if not exists public.places (
   id uuid primary key default gen_random_uuid(),
@@ -58,6 +62,7 @@ create table if not exists public.notes (
 );
 
 create index if not exists idx_places_trip_visit_sort on public.places (trip_id, visit_date, sort_order);
+create index if not exists idx_trips_owner_user on public.trips (owner_user_id);
 create index if not exists idx_flights_trip_departure on public.flights (trip_id, departure_time);
 create index if not exists idx_hotels_trip_checkin on public.hotels (trip_id, check_in_date);
 create index if not exists idx_notes_trip_created on public.notes (trip_id, created_at);

@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 import { generateSharePassword } from '@/lib/share/access';
+import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreateTripInput, TripSummary, UpdateTripInput } from '@/lib/types/trip';
 
@@ -21,11 +21,13 @@ export function buildTripShareUrl(id: string): string {
 }
 
 export async function listTrips(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
+  ownerUserId: string,
 ): Promise<{ data: TripSummary[]; error: string | null }> {
   const { data, error } = await supabase
     .from('trips')
     .select('*')
+    .eq('owner_user_id', ownerUserId)
     .order('start_date', { ascending: true })
     .order('created_at', { ascending: false });
 
@@ -37,7 +39,7 @@ export async function listTrips(
 }
 
 export async function getTripById(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   tripId: string,
 ): Promise<{ data: TripSummary | null; error: string | null }> {
   const { data, error } = await supabase.from('trips').select('*').eq('id', tripId).single();
@@ -53,12 +55,13 @@ export async function getTripById(
 }
 
 export async function createTrip(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: CreateTripInput,
 ): Promise<{ data: TripSummary | null; error: string | null }> {
   const { data, error } = await supabase
     .from('trips')
     .insert({
+      owner_user_id: input.ownerUserId,
       title: input.title,
       start_date: input.startDate,
       end_date: input.endDate,
@@ -76,7 +79,7 @@ export async function createTrip(
 }
 
 export async function updateTrip(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: UpdateTripInput,
 ): Promise<{ data: TripSummary | null; error: string | null }> {
   const { data, error } = await supabase

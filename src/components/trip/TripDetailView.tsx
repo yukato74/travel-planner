@@ -16,6 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
+import { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useState } from 'react';
 import { PlacesSection } from '@/components/places/PlacesSection';
 import { FlightsHotelsTab } from '@/components/trip/FlightsHotelsTab';
@@ -23,7 +24,7 @@ import { NotesTab } from '@/components/trip/NotesTab';
 import { TripInfoDialog } from '@/components/trip/TripInfoDialog';
 import { enumerateDateRange } from '@/lib/date';
 import { getTripAccessStorageKey, requiresSharePassword, verifySharePassword } from '@/lib/share/access';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { buildTripShareUrl, getTripById } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
 
@@ -41,6 +42,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlockErrorMessage, setUnlockErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
 
   const [activeTab, setActiveTab] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -77,6 +79,36 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   useEffect(() => {
     void loadTripData();
   }, [loadTripData]);
+
+  useEffect(() => {
+    const { client } = getSupabaseBrowserClient();
+    if (!client) {
+      setCanEdit(false);
+      return;
+    }
+
+    let mounted = true;
+
+    const fetchUser = async () => {
+      const result = await client.auth.getUser();
+      if (mounted) {
+        setCanEdit(Boolean(result.data.user));
+      }
+    };
+
+    void fetchUser();
+
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange((_event: string, session: Session | null) => {
+      setCanEdit(Boolean(session?.user));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!trip) {
@@ -157,7 +189,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Chip label={needsPassword ? '共有保護あり' : '共有保護なし'} color={needsPassword ? 'warning' : 'success'} />
-                <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => setIsInfoOpen(true)}>
+                <Button variant="outlined" size="small" startIcon={<EditIcon />} onClick={() => setIsInfoOpen(true)} disabled={!canEdit}>
                   Info
                 </Button>
               </Stack>
@@ -234,9 +266,9 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             </Tabs>
 
             <Stack sx={{ p: { xs: 1.5, md: 2 } }}>
-              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} />}
-              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} />}
-              {activeTab === 2 && <NotesTab tripId={trip.id} />}
+              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />}
+              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={canEdit} />}
+              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
             </Stack>
           </Paper>
         )}

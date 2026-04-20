@@ -55,6 +55,7 @@ export type TripDetail = {
 };
 
 export type CreateTripInput = {
+  ownerUserId: string;
   title: string;
   startDate: string;
   endDate: string;

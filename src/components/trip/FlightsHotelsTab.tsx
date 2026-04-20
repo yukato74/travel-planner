@@ -22,9 +22,10 @@ import { Flight, Hotel } from '@/lib/types/trip';
 
 type FlightsHotelsTabProps = {
   tripId: string;
+  canEdit?: boolean;
 };
 
-export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
+export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -290,6 +291,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
 
   return (
     <Stack spacing={2}>
+      {!canEdit && <Alert severity="info">閲覧のみ可能です。編集するにはログインしてください。</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 2 }}>
@@ -298,6 +300,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
             Flights
           </Typography>
 
+          {canEdit && (
           <Box component="form" onSubmit={handleAddFlight}>
             <Grid container spacing={1.25}>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -328,6 +331,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
               </Button>
             </Stack>
           </Box>
+          )}
 
           <Divider />
 
@@ -346,10 +350,12 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
                       {flight.departureTime} - {flight.arrivalTime}
                     </Typography>
                     {flight.memo && <Typography variant="body2">{flight.memo}</Typography>}
-                    <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                      <Button size="small" onClick={() => setEditingFlight(flight)}>Edit</Button>
-                      <Button size="small" color="error" onClick={() => setDeletingFlight(flight)}>Delete</Button>
-                    </Stack>
+                    {canEdit && (
+                      <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                        <Button size="small" onClick={() => setEditingFlight(flight)}>Edit</Button>
+                        <Button size="small" color="error" onClick={() => setDeletingFlight(flight)}>Delete</Button>
+                      </Stack>
+                    )}
                   </Stack>
                 </Paper>
               ))}
@@ -364,6 +370,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
             Hotels
           </Typography>
 
+          {canEdit && (
           <Box component="form" onSubmit={handleAddHotel}>
             <Grid container spacing={1.25}>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -388,6 +395,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
               </Button>
             </Stack>
           </Box>
+          )}
 
           <Divider />
 
@@ -404,10 +412,12 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
                     </Typography>
                     {hotel.address && <Typography variant="body2" color="text.secondary">{hotel.address}</Typography>}
                     {hotel.memo && <Typography variant="body2">{hotel.memo}</Typography>}
-                    <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                      <Button size="small" onClick={() => setEditingHotel(hotel)}>Edit</Button>
-                      <Button size="small" color="error" onClick={() => setDeletingHotel(hotel)}>Delete</Button>
-                    </Stack>
+                    {canEdit && (
+                      <Stack direction="row" justifyContent="flex-end" spacing={1}>
+                        <Button size="small" onClick={() => setEditingHotel(hotel)}>Edit</Button>
+                        <Button size="small" color="error" onClick={() => setDeletingHotel(hotel)}>Delete</Button>
+                      </Stack>
+                    )}
                   </Stack>
                 </Paper>
               ))}
@@ -416,7 +426,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(editingFlight)} onClose={() => setEditingFlight(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && Boolean(editingFlight)} onClose={() => setEditingFlight(null)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={handleSaveFlight}>
           <DialogTitle>Edit flight</DialogTitle>
           <DialogContent>
@@ -437,7 +447,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
         </Box>
       </Dialog>
 
-      <Dialog open={Boolean(deletingFlight)} onClose={() => setDeletingFlight(null)} fullWidth maxWidth="xs">
+      <Dialog open={canEdit && Boolean(deletingFlight)} onClose={() => setDeletingFlight(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete flight</DialogTitle>
         <DialogContent>
           <Typography variant="body2">この flight を削除します。よろしいですか？</Typography>
@@ -448,7 +458,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(editingHotel)} onClose={() => setEditingHotel(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && Boolean(editingHotel)} onClose={() => setEditingHotel(null)} fullWidth maxWidth="sm">
         <Box component="form" onSubmit={handleSaveHotel}>
           <DialogTitle>Edit hotel</DialogTitle>
           <DialogContent>
@@ -467,7 +477,7 @@ export function FlightsHotelsTab({ tripId }: FlightsHotelsTabProps) {
         </Box>
       </Dialog>
 
-      <Dialog open={Boolean(deletingHotel)} onClose={() => setDeletingHotel(null)} fullWidth maxWidth="xs">
+      <Dialog open={canEdit && Boolean(deletingHotel)} onClose={() => setDeletingHotel(null)} fullWidth maxWidth="xs">
         <DialogTitle>Delete hotel</DialogTitle>
         <DialogContent>
           <Typography variant="body2">この hotel を削除します。よろしいですか？</Typography>

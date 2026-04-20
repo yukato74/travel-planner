@@ -6,6 +6,7 @@ export type Database = {
       trips: {
         Row: {
           id: string;
+          owner_user_id: string | null;
           title: string;
           start_date: string;
           end_date: string;
@@ -15,6 +16,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          owner_user_id?: string | null;
           title: string;
           start_date: string;
           end_date: string;
@@ -24,6 +26,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          owner_user_id?: string | null;
           title?: string;
           start_date?: string;
           end_date?: string;

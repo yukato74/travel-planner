@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreateFlightInput, Flight, UpdateFlightInput } from '@/lib/types/trip';
 
@@ -17,7 +17,7 @@ function mapFlight(row: Database['public']['Tables']['flights']['Row']): Flight 
 }
 
 export async function listFlightsByTripId(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   tripId: string,
 ): Promise<{ data: Flight[]; error: string | null }> {
   const { data, error } = await supabase
@@ -34,7 +34,7 @@ export async function listFlightsByTripId(
 }
 
 export async function createFlight(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: CreateFlightInput,
 ): Promise<{ data: Flight | null; error: string | null }> {
   const { data, error } = await supabase
@@ -60,7 +60,7 @@ export async function createFlight(
 }
 
 export async function updateFlight(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   input: UpdateFlightInput,
 ): Promise<{ data: Flight | null; error: string | null }> {
   const { data, error } = await supabase
@@ -86,7 +86,7 @@ export async function updateFlight(
 }
 
 export async function deleteFlight(
-  supabase: SupabaseClient<Database>,
+  supabase: SupabaseDBClient,
   flightId: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.from('flights').delete().eq('id', flightId);
