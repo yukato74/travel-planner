@@ -48,6 +48,21 @@ export type CreatePlaceInput = {
   sortOrder: number;
 };
 
+export type UpdatePlaceInput = {
+  id: string;
+  visitDate: string;
+  name: string;
+  address: string;
+  memo: string;
+  sortOrder: number;
+};
+
+export type PlaceOrderUpdate = {
+  id: string;
+  visitDate: string;
+  sortOrder: number;
+};
+
 export type CreateNoteInput = {
   tripId: string;
   title: string;

@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/lib/types/db';
-import { CreatePlaceInput, Place } from '@/lib/types/trip';
+import { CreatePlaceInput, Place, PlaceOrderUpdate, UpdatePlaceInput } from '@/lib/types/trip';
 
 function mapPlace(row: Database['public']['Tables']['places']['Row']): Place {
   return {
@@ -34,7 +34,7 @@ export async function listPlacesByTripId(
   return { data: data.map(mapPlace), error: null };
 }
 
-export async function createPlace(
+export async function addPlace(
   supabase: SupabaseClient<Database>,
   input: CreatePlaceInput,
 ): Promise<{ data: Place | null; error: string | null }> {
@@ -58,4 +58,62 @@ export async function createPlace(
   }
 
   return { data: mapPlace(data), error: null };
+}
+
+export async function updatePlace(
+  supabase: SupabaseClient<Database>,
+  input: UpdatePlaceInput,
+): Promise<{ data: Place | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('places')
+    .update({
+      visit_date: input.visitDate,
+      name: input.name,
+      address: input.address || null,
+      memo: input.memo || null,
+      sort_order: input.sortOrder,
+    })
+    .eq('id', input.id)
+    .select('*')
+    .single();
+
+  if (error) {
+    return { data: null, error: `場所の更新に失敗しました: ${error.message}` };
+  }
+
+  return { data: mapPlace(data), error: null };
+}
+
+export async function deletePlace(
+  supabase: SupabaseClient<Database>,
+  placeId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('places').delete().eq('id', placeId);
+
+  if (error) {
+    return { error: `場所の削除に失敗しました: ${error.message}` };
+  }
+
+  return { error: null };
+}
+
+export async function reorderPlaces(
+  supabase: SupabaseClient<Database>,
+  updates: PlaceOrderUpdate[],
+): Promise<{ error: string | null }> {
+  for (const update of updates) {
+    const { error } = await supabase
+      .from('places')
+      .update({
+        visit_date: update.visitDate,
+        sort_order: update.sortOrder,
+      })
+      .eq('id', update.id);
+
+    if (error) {
+      return { error: `場所の並び順保存に失敗しました: ${error.message}` };
+    }
+  }
+
+  return { error: null };
 }

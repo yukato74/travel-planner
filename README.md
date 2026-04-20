@@ -1,7 +1,7 @@
 # Travel Planner
 
 Next.js App Router で作成した旅行プランナーです。  
-現在は **Supabase** をバックエンドとして、`trips / places / notes` の一覧表示と新規追加ができる最小実装です。
+現在は **Supabase** をバックエンドとして、`trips / places / notes` の一覧表示と追加・編集・削除ができる実装です。
 
 ## プロジェクト概要
 
@@ -12,6 +12,8 @@ Next.js App Router で作成した旅行プランナーです。
 - `/trip/[id]` で `trip / places / notes` を Supabase から取得
 - 共有保護ありの旅行は 6 桁パスワード入力後に本文を表示（成功状態は `sessionStorage`）
 - `places` は visit_date ごとに表示し、旅行期間内の日付だけを表示
+- places は日付セクションごとの `Add place`、各行の `Edit / Delete` に対応
+- places は dnd-kit で日付内並び替え・別日付移動に対応（`visit_date` と `sort_order` を保存）
 
 ## 使用技術
 
@@ -36,6 +38,8 @@ src/
     dashboard/page.tsx
     trip/[id]/page.tsx
   components/
+    places/PlacesSection.tsx
+    places/PlaceItem.tsx
     trip/TripDetailView.tsx
   lib/
     supabase/client.ts
@@ -87,13 +91,13 @@ npm run dev
 
 ## 現在の実装範囲
 
-- 旅行の編集・削除は未実装
-- places の DnD 本体は未実装（並び替えハンドル付きUIのみ）
+- 旅行（trips）の編集・削除は未実装
+- places は追加・編集・削除・ドラッグ移動まで対応済み
 - itinerary / flights / hotels はプレースホルダー表示
 
 ## 将来拡張の想定
 
 - Supabase Auth 連携（ユーザー単位データ）
 - RLS のユーザー単位制御
-- places の dnd-kit 並び替え実装
+- trips / notes の編集・削除
 - Vercel へのデプロイと環境変数連携
