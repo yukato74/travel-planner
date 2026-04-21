@@ -2,7 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -280,8 +280,8 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
-              <ArrowBackIosNewIcon fontSize="small" />
+            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Close">
+              <CloseIcon fontSize="small" />
             </IconButton>
             {canEdit && previewNote && (
               <Button

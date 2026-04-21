@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import CloseIcon from '@mui/icons-material/Close';
 import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
 import Alert from '@mui/material/Alert';
@@ -949,8 +949,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
-              <ArrowBackIosNewIcon fontSize="small" />
+            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Close">
+              <CloseIcon fontSize="small" />
             </IconButton>
             {canEdit && previewPlace && (
               <Button

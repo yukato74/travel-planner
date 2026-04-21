@@ -3,7 +3,7 @@
 import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import FlightIcon from '@mui/icons-material/Flight';
 import Box from '@mui/material/Box';
@@ -819,8 +819,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
-              <ArrowBackIosNewIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label="Close">
+              <CloseIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
               <Button
@@ -879,8 +879,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
-              <ArrowBackIosNewIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label="Close">
+              <CloseIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
               <Button
