@@ -68,8 +68,21 @@ function formatMonthDayTime(value: string): string {
   return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
 }
 
+function formatAirportName(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '-';
+  }
+  const beforeCode = trimmed.split(' (')[0]?.trim();
+  if (beforeCode) {
+    return beforeCode;
+  }
+  const beforeLocation = trimmed.split(' · ')[0]?.trim();
+  return beforeLocation || trimmed;
+}
+
 function formatFlightLine(place: string, dateTime: string): string {
-  return `${place || '-'} · ${formatMonthDayTime(dateTime)}`;
+  return `${formatAirportName(place)} · ${formatMonthDayTime(dateTime)}`;
 }
 
 function isHttpUrl(value: string): boolean {

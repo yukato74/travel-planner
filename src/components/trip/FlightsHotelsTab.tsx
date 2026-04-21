@@ -1,6 +1,7 @@
 'use client';
 
 import Alert from '@mui/material/Alert';
+import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
@@ -18,7 +19,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -28,6 +29,29 @@ type FlightsHotelsTabProps = {
   tripId: string;
   canEdit?: boolean;
 };
+
+type AirportOption = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+function getAirportNameFromOptionLabel(label: string): string {
+  const beforeCode = label.split(' (')[0]?.trim();
+  if (beforeCode) {
+    return beforeCode;
+  }
+  const beforeLocation = label.split(' · ')[0]?.trim();
+  return beforeLocation || label;
+}
+
+function formatAirportDisplayName(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '-';
+  }
+  return getAirportNameFromOptionLabel(trimmed);
+}
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -55,6 +79,124 @@ function getDayDiff(start: string, end: string): number {
     return 0;
   }
   return Math.max(0, Math.round((endMs - startMs) / (24 * 60 * 60 * 1000)));
+}
+
+function AirportAutocompleteField({
+  label,
+  value,
+  onValueChange,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+  const [query, setQuery] = useState(value);
+  const [options, setOptions] = useState<AirportOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setInputValue(value);
+    setQuery(value);
+  }, [value]);
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setOptions([]);
+      setLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setLoading(true);
+      void fetch(`/api/airports/search?q=${encodeURIComponent(trimmed)}`, { signal: controller.signal })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch airport candidates');
+          }
+          const data = (await response.json()) as { options?: AirportOption[] };
+          setOptions(data.options ?? []);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            setOptions([]);
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
+        });
+    }, 300);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  const selectedValue = useMemo(() => {
+    if (!value) {
+      return null;
+    }
+    const matched = options.find((option) => option.value === value);
+    if (matched) {
+      return matched;
+    }
+    return {
+      id: `manual:${value}`,
+      label: value,
+      value,
+    };
+  }, [options, value]);
+
+  return (
+    <Autocomplete<AirportOption, false, false, false>
+      options={options}
+      value={selectedValue}
+      inputValue={inputValue}
+      onInputChange={(_, nextInputValue, reason) => {
+        setInputValue(nextInputValue);
+        setQuery(nextInputValue);
+        if (reason === 'clear') {
+          onValueChange('');
+        }
+      }}
+      onChange={(_, option) => {
+        onValueChange(option?.value ?? '');
+      }}
+      getOptionLabel={(option) => option.label}
+      isOptionEqualToValue={(option, selected) => option.id === selected.id}
+      filterOptions={(candidateOptions) => candidateOptions}
+      renderOption={(props, option) => (
+        <li {...props} key={option.id}>
+          {getAirportNameFromOptionLabel(option.label)}
+        </li>
+      )}
+      loading={loading}
+      noOptionsText={inputValue.trim().length < 2 ? 'Type at least 2 characters' : 'No airports found'}
+      loadingText="Searching airports..."
+      fullWidth
+      autoHighlight
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={label}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {loading ? <CircularProgress color="inherit" size={16} /> : null}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+        />
+      )}
+    />
+  );
 }
 
 export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabProps) {
@@ -384,7 +526,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                       )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
-                      {flight.departureAirport || '-'} {'→'} {flight.arrivalAirport || '-'}
+                      {formatAirportDisplayName(flight.departureAirport)} {'→'} {formatAirportDisplayName(flight.arrivalAirport)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {formatMonthDayTime(flight.departureTime)} - {formatMonthDayTime(flight.arrivalTime)}
@@ -464,7 +606,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
           {previewFlight && (
           <Stack spacing={1} mt={0.5}>
             <Typography variant="body2" color="text.secondary">
-              {previewFlight?.departureAirport || '-'} {'→'} {previewFlight?.arrivalAirport || '-'}
+              {formatAirportDisplayName(previewFlight?.departureAirport ?? '')} {'→'} {formatAirportDisplayName(previewFlight?.arrivalAirport ?? '')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
@@ -546,8 +688,16 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={addFlight.airline} onChange={(e) => setAddFlight((prev) => ({ ...prev, airline: e.target.value }))} required />
               <TextField label="Flight number" value={addFlight.flightNumber} onChange={(e) => setAddFlight((prev) => ({ ...prev, flightNumber: e.target.value }))} required />
-              <TextField label="Departure airport" value={addFlight.departureAirport} onChange={(e) => setAddFlight((prev) => ({ ...prev, departureAirport: e.target.value }))} />
-              <TextField label="Arrival airport" value={addFlight.arrivalAirport} onChange={(e) => setAddFlight((prev) => ({ ...prev, arrivalAirport: e.target.value }))} />
+              <AirportAutocompleteField
+                label="Departure airport"
+                value={addFlight.departureAirport}
+                onValueChange={(value) => setAddFlight((prev) => ({ ...prev, departureAirport: value }))}
+              />
+              <AirportAutocompleteField
+                label="Arrival airport"
+                value={addFlight.arrivalAirport}
+                onValueChange={(value) => setAddFlight((prev) => ({ ...prev, arrivalAirport: value }))}
+              />
               <TextField
                 type="datetime-local"
                 label="Departure time (local)"
@@ -583,8 +733,16 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={editingFlight?.airline ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, airline: e.target.value } : prev))} required />
               <TextField label="Flight number" value={editingFlight?.flightNumber ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, flightNumber: e.target.value } : prev))} required />
-              <TextField label="Departure airport" value={editingFlight?.departureAirport ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, departureAirport: e.target.value } : prev))} />
-              <TextField label="Arrival airport" value={editingFlight?.arrivalAirport ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, arrivalAirport: e.target.value } : prev))} />
+              <AirportAutocompleteField
+                label="Departure airport"
+                value={editingFlight?.departureAirport ?? ''}
+                onValueChange={(value) => setEditingFlight((prev) => (prev ? { ...prev, departureAirport: value } : prev))}
+              />
+              <AirportAutocompleteField
+                label="Arrival airport"
+                value={editingFlight?.arrivalAirport ?? ''}
+                onValueChange={(value) => setEditingFlight((prev) => (prev ? { ...prev, arrivalAirport: value } : prev))}
+              />
               <TextField
                 type="datetime-local"
                 label="Departure time (local)"
