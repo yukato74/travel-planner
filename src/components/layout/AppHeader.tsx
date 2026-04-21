@@ -156,7 +156,7 @@ export function AppHeader() {
         sx={{
           borderBottom: '1px solid',
           borderColor: alpha(theme.palette.primary.main, 0.24),
-          bgcolor: '#fff4ef',
+          bgcolor: '#fff',
         }}
       >
         <Toolbar sx={{ px: { xs: 2, sm: 3, md: 4 } }}>

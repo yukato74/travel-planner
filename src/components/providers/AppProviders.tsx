@@ -8,12 +8,12 @@ import ThemeRegistry from '@/components/providers/ThemeRegistry';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#f26b5b',
-      light: '#ff9e91',
-      dark: '#d75445',
+      main: '#0770E3',
+      light: '#3A8BEA',
+      dark: '#055BB8',
     },
     background: {
-      default: '#ffffff',
+      default: '#F5F7FA',
     },
   },
   shape: {
@@ -25,10 +25,10 @@ const theme = createTheme({
         containedPrimary: {
           color: '#fff',
           '&:hover': {
-            backgroundColor: '#d75445',
+            backgroundColor: '#055BB8',
           },
           '&:active': {
-            backgroundColor: '#c54b3d',
+            backgroundColor: '#044A95',
           },
         },
       },
