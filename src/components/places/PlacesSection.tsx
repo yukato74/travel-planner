@@ -165,7 +165,7 @@ function FlightItem({
           {item.departureLabel}
         </Typography>
         <Stack direction="row" spacing={0.75} alignItems="center">
-          <FlightIcon fontSize="small" color="action" />
+          <FlightIcon color="action" sx={{ fontSize: 16 }} />
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
             {item.flightInfo}
           </Typography>
