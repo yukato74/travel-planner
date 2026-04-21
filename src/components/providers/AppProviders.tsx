@@ -40,6 +40,14 @@ const theme = createTheme({
         },
       },
     },
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage:
+            'linear-gradient(to bottom, #ffffff 0, #ffffff env(safe-area-inset-top), #fff8f6 env(safe-area-inset-top), #fff8f6 100%)',
+        },
+      },
+    },
   },
 });
 
