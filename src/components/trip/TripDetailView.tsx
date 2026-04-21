@@ -187,24 +187,45 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   }, [trip]);
 
   useEffect(() => {
-    if (!trip) {
-      return;
-    }
+    const syncUnlockedAccess = async () => {
+      if (!trip) {
+        return;
+      }
 
-    const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
-    if (isOwner) {
-      setIsUnlocked(true);
-      return;
-    }
+      const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
+      if (isOwner) {
+        setIsUnlocked(true);
+        return;
+      }
 
-    if (!requiresSharePassword(trip)) {
-      setIsUnlocked(true);
-      return;
-    }
+      if (!requiresSharePassword(trip)) {
+        setIsUnlocked(true);
+        return;
+      }
 
-    const accessKey = getTripAccessStorageKey(trip.id);
-    const isGranted = localStorage.getItem(accessKey) === 'granted';
-    setIsUnlocked(isGranted);
+      const accessKey = getTripAccessStorageKey(trip.id);
+      const isGranted = localStorage.getItem(accessKey) === 'granted';
+      setIsUnlocked(isGranted);
+
+      if (!isGranted || !viewerUserId) {
+        return;
+      }
+
+      const { client, error } = getSupabaseBrowserClient();
+      if (!client) {
+        setErrorMessage(error);
+        return;
+      }
+
+      const saveResult = await addTripMember(client, trip.id, viewerUserId);
+      if (saveResult.error) {
+        setErrorMessage(saveResult.error);
+        return;
+      }
+      setIsInvited(true);
+    };
+
+    void syncUnlockedAccess();
   }, [trip, viewerUserId]);
 
   const handleUnlock = async () => {
