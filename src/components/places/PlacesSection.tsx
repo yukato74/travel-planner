@@ -1,12 +1,15 @@
 'use client';
 
 import {
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   MouseSensor,
   TouchSensor,
+  pointerWithin,
+  rectIntersection,
   useDroppable,
   useSensor,
   useSensors,
@@ -183,8 +186,8 @@ function InsertDropZone({ id }: { id: string }) {
     <Box
       ref={setNodeRef}
       sx={{
-        height: 8,
-        my: 0.25,
+        height: 12,
+        my: 0,
         borderRadius: 999,
         bgcolor: isOver ? 'primary.main' : 'transparent',
         opacity: isOver ? 0.35 : 0,
@@ -198,8 +201,8 @@ function NonDroppableGap() {
   return (
     <Box
       sx={{
-        height: 8,
-        my: 0.25,
+        height: 12,
+        my: 0,
       }}
     />
   );
@@ -238,7 +241,7 @@ function DaySection({
         bgcolor: isOver && canEdit ? 'action.hover' : 'background.paper',
       }}
     >
-      <Stack spacing={1.25}>
+      <Stack spacing={0}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
           <Stack direction="row" alignItems="baseline" spacing={1}>
             <Typography variant="subtitle2" fontWeight={700} whiteSpace="nowrap">
@@ -252,8 +255,6 @@ function DaySection({
             Add place
           </Button>
         </Stack>
-
-        <Divider />
 
         <SortableContext items={orderedItemIds.filter((id) => places.some((place) => place.id === id))} strategy={verticalListSortingStrategy}>
           <List disablePadding>
@@ -333,9 +334,25 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 6 } }),
   );
+  const collisionDetection: CollisionDetection = useCallback((args) => {
+    const activeId = String(args.active.id);
+    const pointerCollisions = pointerWithin(args).filter((collision) => String(collision.id) !== activeId);
+    const insertCollisions = pointerCollisions.filter((collision) => String(collision.id).startsWith('insert:'));
+    if (insertCollisions.length > 0) {
+      return insertCollisions;
+    }
+    const nonDayCollisions = pointerCollisions.filter((collision) => !dateOptions.includes(String(collision.id)));
+    if (nonDayCollisions.length > 0) {
+      return nonDayCollisions;
+    }
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    return rectIntersection(args);
+  }, [dateOptions]);
 
   const activePlace = useMemo(
     () => (activePlaceId ? places.find((place) => place.id === activePlaceId) ?? null : null),
@@ -750,11 +767,25 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     nextDayItemOrderByDay[sourceDate] = nextDayItemOrderByDay[sourceDate].filter((id) => id !== activeId);
     const targetList = [...(nextDayItemOrderByDay[targetDate] ?? [])];
+    const overIndex = targetList.indexOf(overId);
     let insertIndex = insertMatch
       ? Number(insertMatch[2])
       : overId === targetDate
-        ? targetList.length
-        : targetList.indexOf(overId);
+        ? (() => {
+            const translated = active.rect.current.translated;
+            if (!translated) return targetList.length;
+            const activeCenterY = translated.top + translated.height / 2;
+            const overMidY = over.rect.top + over.rect.height / 2;
+            return activeCenterY <= overMidY ? 0 : targetList.length;
+          })()
+        : (() => {
+            if (overIndex < 0) return targetList.length;
+            const translated = active.rect.current.translated;
+            if (!translated) return overIndex;
+            const activeCenterY = translated.top + translated.height / 2;
+            const overMidY = over.rect.top + over.rect.height / 2;
+            return activeCenterY <= overMidY ? overIndex : overIndex + 1;
+          })();
     if (Number.isNaN(insertIndex) || insertIndex < 0) insertIndex = targetList.length;
     if (insertIndex > targetList.length) insertIndex = targetList.length;
     insertIndex = adjustInsertIndexAwayFromFlightGap(targetList, insertIndex, flightItemById);
@@ -811,7 +842,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <Grid container spacing={1.5}>
           {dateOptions.map((date, index) => (
             <Grid key={date} size={{ xs: 12 }}>

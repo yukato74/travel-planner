@@ -635,10 +635,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <Typography variant="subtitle1" fontWeight={700} color="text.secondary">
-        Bookings
-      </Typography>
-
       <Paper variant="outlined" sx={{ p: 1.5 }}>
         <Stack spacing={1.25}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
