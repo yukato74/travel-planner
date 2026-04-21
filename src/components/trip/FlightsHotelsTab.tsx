@@ -709,9 +709,14 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 >
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                      <Typography variant="body1" fontWeight={600} noWrap>
-                        {formatFlightLine(flight.departureAirport, flight.departureTime)}
-                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="baseline" minWidth={0}>
+                        <Typography variant="body1" fontWeight={600} noWrap sx={{ width: '5ch', flexShrink: 0 }}>
+                          {formatAirportCode(flight.departureAirport)}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" noWrap>
+                          {formatMonthDayTime(flight.departureTime)}
+                        </Typography>
+                      </Stack>
                       {canEdit && (
                         <IconButton
                           size="small"
@@ -726,14 +731,19 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                       )}
                     </Stack>
                     <Stack direction="row" spacing={0.75} alignItems="center">
-                      <FlightIcon color="action" sx={{ fontSize: 16 }} />
+                      <FlightIcon color="action" sx={{ fontSize: 16, transform: 'rotate(90deg)' }} />
                       <Typography variant="body2" color="text.secondary">
                         {flight.airline} {flight.flightNumber}
                       </Typography>
                     </Stack>
-                    <Typography variant="body1" fontWeight={600}>
-                        {formatFlightLine(flight.arrivalAirport, flight.arrivalTime)}
-                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="baseline">
+                      <Typography variant="body1" fontWeight={600} noWrap sx={{ width: '5ch', flexShrink: 0 }}>
+                        {formatAirportCode(flight.arrivalAirport)}
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary" noWrap>
+                        {formatMonthDayTime(flight.arrivalTime)}
+                      </Typography>
+                    </Stack>
                   </Stack>
                 </Paper>
                 );

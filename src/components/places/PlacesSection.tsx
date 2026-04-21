@@ -148,6 +148,9 @@ function FlightItem({
 }: {
   item: ItineraryFlightItem;
 }) {
+  const [departureCode, departureDateTime = ''] = item.departureLabel.split(' · ');
+  const [arrivalCode, arrivalDateTime = ''] = item.arrivalLabel.split(' · ');
+
   return (
     <Paper
       variant="outlined"
@@ -161,18 +164,28 @@ function FlightItem({
       }}
     >
       <Stack spacing={0.5}>
-        <Typography variant="body1" fontWeight={600}>
-          {item.departureLabel}
-        </Typography>
+        <Stack direction="row" spacing={1} alignItems="baseline">
+          <Typography variant="body1" fontWeight={600} noWrap sx={{ width: '5ch', flexShrink: 0 }}>
+            {departureCode}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" noWrap>
+            {departureDateTime}
+          </Typography>
+        </Stack>
         <Stack direction="row" spacing={0.75} alignItems="center">
-          <FlightIcon color="action" sx={{ fontSize: 16 }} />
+          <FlightIcon color="action" sx={{ fontSize: 16, transform: 'rotate(90deg)' }} />
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
             {item.flightInfo}
           </Typography>
         </Stack>
-        <Typography variant="body1" fontWeight={600}>
-          {item.arrivalLabel}
-        </Typography>
+        <Stack direction="row" spacing={1} alignItems="baseline">
+          <Typography variant="body1" fontWeight={600} noWrap sx={{ width: '5ch', flexShrink: 0 }}>
+            {arrivalCode}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" noWrap>
+            {arrivalDateTime}
+          </Typography>
+        </Stack>
       </Stack>
     </Paper>
   );
