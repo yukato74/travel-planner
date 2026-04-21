@@ -17,8 +17,10 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif' }}>
         <AppProviders>
-          <AppHeader />
-          {children}
+          <div style={{ backgroundColor: '#fff8f6', minHeight: '100vh' }}>
+            <AppHeader />
+            {children}
+          </div>
         </AppProviders>
       </body>
     </html>

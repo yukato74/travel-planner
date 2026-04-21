@@ -13,7 +13,7 @@ const theme = createTheme({
       dark: '#d75445',
     },
     background: {
-      default: '#fff8f6',
+      default: '#ffffff',
     },
   },
   shape: {
@@ -37,14 +37,6 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           fontWeight: 700,
-        },
-      },
-    },
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundImage:
-            'linear-gradient(to bottom, #ffffff 0, #ffffff env(safe-area-inset-top), #fff8f6 env(safe-area-inset-top), #fff8f6 100%)',
         },
       },
     },

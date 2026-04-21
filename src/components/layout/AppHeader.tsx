@@ -157,8 +157,6 @@ export function AppHeader() {
           borderBottom: '1px solid',
           borderColor: alpha(theme.palette.primary.main, 0.24),
           bgcolor: '#fff4ef',
-          backgroundImage:
-            'linear-gradient(to bottom, #ffffff 0, #ffffff env(safe-area-inset-top), #fff4ef env(safe-area-inset-top), #fff4ef 100%)',
         }}
       >
         <Toolbar sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
