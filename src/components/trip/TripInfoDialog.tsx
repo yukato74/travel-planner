@@ -11,8 +11,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import { FormEvent, useEffect, useState } from 'react';
-import { updateTrip } from '@/lib/trips/service';
+import { deleteTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { TripSummary } from '@/lib/types/trip';
 
@@ -23,9 +24,10 @@ type TripInfoDialogProps = {
   showShareInfo?: boolean;
   onClose: () => void;
   onUpdated: (trip: TripSummary) => void;
+  onDeleted: (tripId: string) => void;
 };
 
-export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, onClose, onUpdated }: TripInfoDialogProps) {
+export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, onClose, onUpdated, onDeleted }: TripInfoDialogProps) {
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -33,6 +35,7 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
   const [sharePassword, setSharePassword] = useState(trip.sharePassword);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -45,6 +48,7 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
     setIsShareProtected(trip.isShareProtected);
     setSharePassword(trip.sharePassword);
     setErrorMessage(null);
+    setConfirmDeleteOpen(false);
   }, [open, trip]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -93,6 +97,30 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
 
     onUpdated(result.data);
     onClose();
+  };
+
+  const handleDeleteTrip = async () => {
+    const { client, error } = getSupabaseBrowserClient();
+    if (!client) {
+      setErrorMessage(error);
+      return;
+    }
+
+    setSaving(true);
+    setErrorMessage(null);
+
+    const result = await deleteTrip(client, trip.id);
+    setSaving(false);
+
+    if (result.error) {
+      setErrorMessage(result.error);
+      setConfirmDeleteOpen(false);
+      return;
+    }
+
+    setConfirmDeleteOpen(false);
+    onClose();
+    onDeleted(trip.id);
   };
 
   return (
@@ -148,6 +176,11 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
           </Stack>
         </DialogContent>
         <DialogActions>
+          {showShareInfo && (
+            <Button color="error" onClick={() => setConfirmDeleteOpen(true)} disabled={saving} sx={{ mr: 'auto' }}>
+              Delete trip
+            </Button>
+          )}
           <Button onClick={onClose} color="inherit">
             Cancel
           </Button>
@@ -156,6 +189,26 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
           </Button>
         </DialogActions>
       </Box>
+
+      <Dialog open={showShareInfo && confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Delete trip</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1}>
+            <Typography variant="body2">Are you sure you want to delete this trip?</Typography>
+            <Typography variant="body2" color="text.secondary">
+              This will also remove related places, flights, hotels, and notes.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteOpen(false)} color="inherit" disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteTrip} color="error" variant="contained" disabled={saving}>
+            {saving ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }

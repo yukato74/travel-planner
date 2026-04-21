@@ -11,6 +11,7 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useState } from 'react';
 import { PlacesSection } from '@/components/places/PlacesSection';
@@ -20,7 +21,7 @@ import { TripInfoDialog } from '@/components/trip/TripInfoDialog';
 import { enumerateDateRange } from '@/lib/date';
 import { getTripAccessStorageKey, requiresSharePassword, verifySharePassword } from '@/lib/share/access';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
-import { buildTripShareUrl, getTripById } from '@/lib/trips/service';
+import { buildTripShareUrl, getTripById, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
 
 type TripDetailViewProps = {
@@ -28,6 +29,7 @@ type TripDetailViewProps = {
 };
 
 export function TripDetailView({ tripId }: TripDetailViewProps) {
+  const router = useRouter();
   const [trip, setTrip] = useState<TripSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -153,15 +155,21 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       return;
     }
 
+    const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
+    if (isOwner) {
+      setIsUnlocked(true);
+      return;
+    }
+
     if (!requiresSharePassword(trip)) {
       setIsUnlocked(true);
       return;
     }
 
     const accessKey = getTripAccessStorageKey(trip.id);
-    const isGranted = sessionStorage.getItem(accessKey) === 'granted';
+    const isGranted = localStorage.getItem(accessKey) === 'granted';
     setIsUnlocked(isGranted);
-  }, [trip]);
+  }, [trip, viewerUserId]);
 
   const handleUnlock = () => {
     if (!trip) {
@@ -171,11 +179,40 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     if (verifySharePassword(trip, inputPassword)) {
       setIsUnlocked(true);
       setUnlockErrorMessage('');
-      sessionStorage.setItem(getTripAccessStorageKey(trip.id), 'granted');
+      localStorage.setItem(getTripAccessStorageKey(trip.id), 'granted');
       return;
     }
 
     setUnlockErrorMessage('Incorrect password. Please try again.');
+  };
+
+  const handleDeletedTrip = async (deletedTripId: string) => {
+    const { client, error } = getSupabaseBrowserClient();
+    if (!client) {
+      setErrorMessage(error);
+      router.push('/dashboard');
+      return;
+    }
+
+    if (!viewerUserId) {
+      router.push('/dashboard');
+      return;
+    }
+
+    const result = await listTrips(client, viewerUserId);
+    if (result.error) {
+      setErrorMessage(result.error);
+      router.push('/dashboard');
+      return;
+    }
+
+    const nextTrip = result.data.find((item) => item.id !== deletedTripId) ?? null;
+    if (nextTrip) {
+      router.push(`/trip/${nextTrip.id}`);
+      return;
+    }
+
+    router.push('/dashboard');
   };
 
   if (loading) {
@@ -215,6 +252,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const needsPassword = requiresSharePassword(trip);
   const dateOptions = enumerateDateRange(trip.startDate, trip.endDate);
   const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
+  const needsPasswordGate = needsPassword && !isOwner;
   const shareUrl = buildTripShareUrl(trip.id);
 
   return (
@@ -222,7 +260,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       <Stack spacing={2}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        {needsPassword && !isUnlocked ? (
+        {needsPasswordGate && !isUnlocked ? (
           <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
             <Stack spacing={2} maxWidth={420}>
               <Typography variant="h6" fontWeight={700}>
@@ -245,25 +283,25 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             </Stack>
           </Paper>
         ) : (
-          <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+          <Stack spacing={1.5}>
             <Tabs
               value={activeTab}
               onChange={(_, value) => setActiveTab(value)}
               variant="scrollable"
               scrollButtons="auto"
-              sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+              sx={{ borderBottom: '1px solid', borderColor: 'divider', minHeight: 42 }}
             >
-              <Tab label="Itinerary" />
-              <Tab label="Flights & Hotels" />
-              <Tab label="Notes" />
+              <Tab label="Itinerary" sx={{ minHeight: 42, py: 0.5 }} />
+              <Tab label="Bookings" sx={{ minHeight: 42, py: 0.5 }} />
+              <Tab label="Notes" sx={{ minHeight: 42, py: 0.5 }} />
             </Tabs>
 
-            <Stack sx={{ p: { xs: 1.5, md: 2 } }}>
+            <Stack sx={{ pb: 0.5 }}>
               {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={isOwner} />}
               {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={isOwner} />}
               {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={isOwner} />}
             </Stack>
-          </Paper>
+          </Stack>
         )}
 
         <TripInfoDialog
@@ -273,6 +311,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
           showShareInfo={isOwner}
           onClose={() => setIsInfoOpen(false)}
           onUpdated={(updatedTrip) => setTrip(updatedTrip)}
+          onDeleted={handleDeletedTrip}
         />
       </Stack>
     </Container>

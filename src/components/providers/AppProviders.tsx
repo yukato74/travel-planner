@@ -8,10 +8,12 @@ import ThemeRegistry from '@/components/providers/ThemeRegistry';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1565c0',
+      main: '#f26b5b',
+      light: '#ff9e91',
+      dark: '#d75445',
     },
     background: {
-      default: '#f4f6f8',
+      default: '#fff8f6',
     },
   },
   shape: {

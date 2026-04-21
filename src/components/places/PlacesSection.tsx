@@ -6,7 +6,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useDroppable,
   useSensor,
@@ -14,7 +14,6 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -31,6 +30,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
@@ -46,18 +47,9 @@ type PlacesSectionProps = {
 type DaySectionProps = {
   date: string;
   places: Place[];
-  isAddOpen: boolean;
-  addName: string;
-  addAddress: string;
-  addMemo: string;
   saving: boolean;
   canEdit: boolean;
   onOpenAdd: (date: string) => void;
-  onCloseAdd: () => void;
-  onChangeAddName: (value: string) => void;
-  onChangeAddAddress: (value: string) => void;
-  onChangeAddMemo: (value: string) => void;
-  onSubmitAdd: (event: FormEvent<HTMLFormElement>) => void;
   onEdit: (place: Place) => void;
   onDelete: (place: Place) => void;
 };
@@ -65,18 +57,9 @@ type DaySectionProps = {
 function DaySection({
   date,
   places,
-  isAddOpen,
-  addName,
-  addAddress,
-  addMemo,
   saving,
   canEdit,
   onOpenAdd,
-  onCloseAdd,
-  onChangeAddName,
-  onChangeAddAddress,
-  onChangeAddMemo,
-  onSubmitAdd,
   onEdit,
   onDelete,
 }: DaySectionProps) {
@@ -107,45 +90,6 @@ function DaySection({
             Add place
           </Button>
         </Stack>
-
-        {canEdit && isAddOpen && (
-          <Box component="form" onSubmit={onSubmitAdd}>
-            <Stack spacing={1}>
-              <TextField
-                label="Place name"
-                value={addName}
-                onChange={(event) => onChangeAddName(event.target.value)}
-                fullWidth
-                required
-                size="small"
-              />
-              <TextField
-                label="Address (optional)"
-                value={addAddress}
-                onChange={(event) => onChangeAddAddress(event.target.value)}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label="Memo (optional)"
-                value={addMemo}
-                onChange={(event) => onChangeAddMemo(event.target.value)}
-                fullWidth
-                size="small"
-                multiline
-                minRows={2}
-              />
-              <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                <Button type="button" size="small" color="inherit" onClick={onCloseAdd} startIcon={<CloseIcon />}>
-                  Cancel
-                </Button>
-                <Button type="submit" size="small" variant="contained" disabled={saving || !addName.trim()}>
-                  {saving ? 'Saving...' : 'Save'}
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
-        )}
 
         <Divider />
 
@@ -187,10 +131,12 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [deletingPlace, setDeletingPlace] = useState<Place | null>(null);
 
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
   );
 
   const activePlace = useMemo(
@@ -549,10 +495,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <DaySection
                 date={date}
                 places={groupedPlaces.get(date) ?? []}
-                isAddOpen={addDate === date}
-                addName={addName}
-                addAddress={addAddress}
-                addMemo={addMemo}
                 saving={saving}
                 canEdit={canEdit}
                 onOpenAdd={(selectedDate) => {
@@ -561,11 +503,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   setAddAddress('');
                   setAddMemo('');
                 }}
-                onCloseAdd={() => setAddDate(null)}
-                onChangeAddName={setAddName}
-                onChangeAddAddress={setAddAddress}
-                onChangeAddMemo={setAddMemo}
-                onSubmitAdd={handleSubmitAdd}
                 onEdit={openEditDialog}
                 onDelete={(place) => setDeletingPlace(place)}
               />
@@ -584,7 +521,59 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         </DragOverlay>
       </DndContext>
 
-      <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <Box component="form" onSubmit={handleSubmitAdd}>
+          <DialogTitle>Add place</DialogTitle>
+          <DialogContent>
+            <Stack spacing={1.5} mt={0.5}>
+              <TextField
+                select
+                label="visit_date"
+                value={addDate ?? ''}
+                onChange={(event) => setAddDate(event.target.value)}
+                required
+              >
+                {dateOptions.map((date) => (
+                  <MenuItem key={date} value={date}>
+                    {date}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Place name"
+                value={addName}
+                onChange={(event) => setAddName(event.target.value)}
+                fullWidth
+                required
+              />
+              <TextField
+                label="Address (optional)"
+                value={addAddress}
+                onChange={(event) => setAddAddress(event.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Memo (optional)"
+                value={addMemo}
+                onChange={(event) => setAddMemo(event.target.value)}
+                fullWidth
+                multiline
+                minRows={3}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddDate(null)} color="inherit">
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={saving || !addName.trim()}>
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+
+      <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitEdit}>
           <DialogTitle>Edit place</DialogTitle>
           <DialogContent>

@@ -1,6 +1,7 @@
 'use client';
 
 import Alert from '@mui/material/Alert';
+import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -9,13 +10,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -32,11 +32,15 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [addOpen, setAddOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -92,6 +96,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     setNotes((prev) => [...prev, result.data!]);
     setTitle('');
     setContent('');
+    setAddOpen(false);
   };
 
   const handleSaveEdit = async (event: FormEvent<HTMLFormElement>) => {
@@ -165,63 +170,97 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   }
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={1.5}>
       {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      {canEdit && (
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Box component="form" onSubmit={handleAdd}>
-          <Stack spacing={1.25}>
-            <Typography variant="h6" fontWeight={700}>Add note</Typography>
-            <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth size="small" />
-            <TextField
-              label="Content"
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              required
-              fullWidth
-              size="small"
-              multiline
-              minRows={3}
-            />
-            <Stack direction="row" justifyContent="flex-end">
-              <Button type="submit" size="small" variant="contained" disabled={saving}>
-                {saving ? 'Saving...' : 'Add note'}
+      <Paper variant="outlined" sx={{ p: 1.5 }}>
+        <Stack spacing={1.25}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <Typography variant="h6" fontWeight={700}>Notes</Typography>
+            {canEdit && (
+              <Button
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setTitle('');
+                  setContent('');
+                  setAddOpen(true);
+                }}
+              >
+                Add note
               </Button>
-            </Stack>
+            )}
           </Stack>
-        </Box>
-      </Paper>
-      )}
-
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <Stack spacing={1}>
-          <Typography variant="h6" fontWeight={700}>Notes</Typography>
           <Divider />
+
           {notes.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No notes yet.</Typography>
           ) : (
-            <List disablePadding>
+            <Stack spacing={1}>
               {notes.map((note) => (
-                <ListItem key={note.id} disablePadding sx={{ py: 1 }}>
-                  <Stack width="100%" spacing={0.5}>
-                    <ListItemText primary={note.title} secondary={note.content} />
-                    {canEdit && (
-                      <Stack direction="row" justifyContent="flex-end" spacing={1}>
-                        <Button size="small" onClick={() => setEditingNote(note)}>Edit</Button>
-                        <Button size="small" color="error" onClick={() => setDeletingNote(note)}>Delete</Button>
-                      </Stack>
-                    )}
+                <Paper
+                  key={note.id}
+                  variant="outlined"
+                  onClick={() => {
+                    if (canEdit) {
+                      setEditingNote(note);
+                    }
+                  }}
+                  sx={{ p: 1.25, cursor: canEdit ? 'pointer' : 'default' }}
+                >
+                  <Stack spacing={0.5}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                      <Typography fontWeight={700}>{note.title}</Typography>
+                      {canEdit && (
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setDeletingNote(note);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {note.content}
+                    </Typography>
                   </Stack>
-                </ListItem>
+                </Paper>
               ))}
-            </List>
+            </Stack>
           )}
         </Stack>
       </Paper>
 
-      <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm">
+      <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <Box component="form" onSubmit={handleAdd}>
+          <DialogTitle>Add note</DialogTitle>
+          <DialogContent>
+            <Stack spacing={1.25} mt={0.5}>
+              <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
+              <TextField
+                label="Content"
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                required
+                fullWidth
+                multiline
+                minRows={5}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddOpen(false)} color="inherit">Cancel</Button>
+            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Add note'}</Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+
+      <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveEdit}>
           <DialogTitle>Edit note</DialogTitle>
           <DialogContent>
@@ -229,22 +268,18 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               <TextField
                 label="Title"
                 value={editingNote?.title ?? ''}
-                onChange={(event) =>
-                  setEditingNote((prev) => (prev ? { ...prev, title: event.target.value } : prev))
-                }
+                onChange={(event) => setEditingNote((prev) => (prev ? { ...prev, title: event.target.value } : prev))}
                 required
                 fullWidth
               />
               <TextField
                 label="Content"
                 value={editingNote?.content ?? ''}
-                onChange={(event) =>
-                  setEditingNote((prev) => (prev ? { ...prev, content: event.target.value } : prev))
-                }
+                onChange={(event) => setEditingNote((prev) => (prev ? { ...prev, content: event.target.value } : prev))}
                 required
                 fullWidth
                 multiline
-                minRows={4}
+                minRows={5}
               />
             </Stack>
           </DialogContent>

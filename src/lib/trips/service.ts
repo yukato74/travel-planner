@@ -3,7 +3,7 @@ import { SupabaseDBClient } from '@/lib/supabase/types';
 import { Database } from '@/lib/types/db';
 import { CreateTripInput, TripSummary, UpdateTripInput } from '@/lib/types/trip';
 
-const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? '';
 
 function mapTrip(row: Database['public']['Tables']['trips']['Row']): TripSummary {
   return {
@@ -18,7 +18,9 @@ function mapTrip(row: Database['public']['Tables']['trips']['Row']): TripSummary
 }
 
 export function buildTripShareUrl(id: string): string {
-  return `${APP_BASE_URL}/trip/${id}`;
+  const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const base = (runtimeOrigin || APP_BASE_URL).replace(/\/$/, '');
+  return `${base}/trip/${id}`;
 }
 
 export async function listTrips(
@@ -101,4 +103,17 @@ export async function updateTrip(
   }
 
   return { data: mapTrip(data), error: null };
+}
+
+export async function deleteTrip(
+  supabase: SupabaseDBClient,
+  tripId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('trips').delete().eq('id', tripId);
+
+  if (error) {
+    return { error: `Failed to delete trip: ${error.message}` };
+  }
+
+  return { error: null };
 }

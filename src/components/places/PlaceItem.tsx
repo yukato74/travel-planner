@@ -2,7 +2,6 @@
 
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
@@ -33,6 +32,11 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
     <ListItem
       ref={setNodeRef}
       disablePadding
+      onClick={() => {
+        if (!disabled) {
+          onEdit(place);
+        }
+      }}
       sx={{
         p: 1,
         mb: 1,
@@ -43,6 +47,7 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
         opacity: isDragging ? 0.6 : 1,
         transform: CSS.Translate.toString(transform),
         transition,
+        cursor: disabled ? 'default' : 'pointer',
       }}
     >
       <Stack direction="row" spacing={1} width="100%" alignItems="flex-start">
@@ -53,7 +58,8 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
           {...attributes}
           {...listeners}
           disabled={disabled}
-          sx={{ mt: 0.2 }}
+          onClick={(event) => event.stopPropagation()}
+          sx={{ mt: 0.2, touchAction: 'none' }}
         >
           <DragIndicatorIcon fontSize="small" />
         </IconButton>
@@ -62,17 +68,24 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
           <Typography variant="body1" fontWeight={600}>
             {place.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {place.address || 'No address'}
-            {place.memo ? ` | ${place.memo}` : ''}
-          </Typography>
+          {place.address && (
+            <Typography variant="body2" color="text.secondary">
+              {place.address}
+            </Typography>
+          )}
+          {place.memo && <Typography variant="body2" color="text.secondary">{place.memo}</Typography>}
         </Box>
 
-        <Stack direction="row" spacing={0.5}>
-          <IconButton size="small" aria-label="Edit" onClick={() => onEdit(place)} disabled={disabled}>
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" aria-label="Delete" onClick={() => onDelete(place)} disabled={disabled}>
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <IconButton
+            size="small"
+            aria-label="Delete"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete(place);
+            }}
+            disabled={disabled}
+          >
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>
         </Stack>

@@ -19,6 +19,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { alpha, useTheme } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
@@ -31,6 +32,7 @@ function getCurrentTripId(pathname: string): string | null {
 }
 
 export function AppHeader() {
+  const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -45,6 +47,7 @@ export function AppHeader() {
   const currentTripId = useMemo(() => getCurrentTripId(pathname), [pathname]);
   const currentTrip = useMemo(() => trips.find((trip) => trip.id === currentTripId) ?? null, [trips, currentTripId]);
   const currentTitle = currentTrip?.title ?? (currentTripId === viewingTripId ? viewingTripTitle : null) ?? 'Travel Planner';
+  const showHeaderLogin = !userId && pathname !== '/';
 
   const loadTrips = async (ownerId: string) => {
     const { client } = getSupabaseBrowserClient();
@@ -146,7 +149,16 @@ export function AppHeader() {
 
   return (
     <>
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+      <AppBar
+        position="sticky"
+        color="default"
+        elevation={0}
+        sx={{
+          borderBottom: '1px solid',
+          borderColor: alpha(theme.palette.primary.main, 0.24),
+          bgcolor: alpha(theme.palette.primary.main, 0.08),
+        }}
+      >
         <Toolbar sx={{ px: { xs: 1, sm: 2 } }}>
           <IconButton aria-label="Open menu" edge="start" onClick={() => setDrawerOpen(true)}>
             <MenuIcon />
@@ -162,11 +174,11 @@ export function AppHeader() {
             <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 220 }}>
               {userEmail}
             </Typography>
-          ) : (
+          ) : showHeaderLogin ? (
             <Button href="/login" startIcon={<LoginIcon />} size="small">
               Login
             </Button>
-          )}
+          ) : null}
         </Toolbar>
       </AppBar>
 
@@ -239,7 +251,13 @@ export function AppHeader() {
             </Button>
 
             {userId ? (
-              <Button variant="contained" color="inherit" startIcon={<LogoutIcon />} onClick={handleLogout}>
+              <Button
+                variant="text"
+                color="inherit"
+                startIcon={<LogoutIcon />}
+                onClick={handleLogout}
+                sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}
+              >
                 Logout
               </Button>
             ) : (
