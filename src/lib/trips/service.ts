@@ -40,6 +40,30 @@ function parseItineraryOrder(value: unknown): ItineraryOrderByDay {
   return parsed;
 }
 
+function getGrantedTripIdsFromStorage(): string[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  const ids: string[] = [];
+  const prefix = 'trip-access:';
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (!key || !key.startsWith(prefix)) {
+      continue;
+    }
+    if (window.localStorage.getItem(key) !== 'granted') {
+      continue;
+    }
+    const tripId = key.slice(prefix.length);
+    if (!uuidPattern.test(tripId)) {
+      continue;
+    }
+    ids.push(tripId);
+  }
+  return Array.from(new Set(ids));
+}
+
 export async function getTripItineraryOrder(
   supabase: SupabaseDBClient,
   tripId: string,
@@ -67,6 +91,41 @@ export async function listTrips(
   supabase: SupabaseDBClient,
   userId: string,
 ): Promise<{ data: TripSummary[]; error: string | null }> {
+  const mergeWithGrantedTrips = async (
+    baseRows: Database['public']['Tables']['trips']['Row'][],
+  ): Promise<{ data: TripSummary[]; error: string | null }> => {
+    const grantedTripIds = getGrantedTripIdsFromStorage();
+    const existingIds = new Set(baseRows.map((trip) => trip.id));
+    const missingGrantedIds = grantedTripIds.filter((id) => !existingIds.has(id));
+    if (missingGrantedIds.length === 0) {
+      return { data: baseRows.map(mapTrip), error: null };
+    }
+
+    const { data: grantedTrips, error: grantedTripsError } = await supabase
+      .from('trips')
+      .select('*')
+      .in('id', missingGrantedIds)
+      .order('start_date', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (grantedTripsError) {
+      return { data: baseRows.map(mapTrip), error: null };
+    }
+
+    const merged = [...baseRows, ...grantedTrips];
+    const uniqueById = new Map<string, Database['public']['Tables']['trips']['Row']>();
+    for (const trip of merged) {
+      uniqueById.set(trip.id, trip);
+    }
+    const data = Array.from(uniqueById.values()).sort((a, b) => {
+      if (a.start_date === b.start_date) {
+        return b.created_at.localeCompare(a.created_at);
+      }
+      return a.start_date.localeCompare(b.start_date);
+    });
+    return { data: data.map(mapTrip), error: null };
+  };
+
   const [ownerTripsResult, membershipResult] = await Promise.all([
     supabase
       .from('trips')
@@ -85,14 +144,14 @@ export async function listTrips(
     const isMissingTripMembersTable =
       membershipResult.error.code === '42P01' || membershipResult.error.message.includes('trip_members');
     if (isMissingTripMembersTable) {
-      return { data: ownerTripsResult.data.map(mapTrip), error: null };
+      return mergeWithGrantedTrips(ownerTripsResult.data);
     }
     return { data: [], error: `Failed to fetch shared trips: ${membershipResult.error.message}` };
   }
 
   const memberTripIds = Array.from(new Set((membershipResult.data ?? []).map((row: { trip_id: string }) => row.trip_id).filter(Boolean)));
   if (memberTripIds.length === 0) {
-    return { data: ownerTripsResult.data.map(mapTrip), error: null };
+    return mergeWithGrantedTrips(ownerTripsResult.data);
   }
 
   const { data: invitedTrips, error: invitedTripsError } = await supabase
@@ -106,19 +165,7 @@ export async function listTrips(
     return { data: [], error: `Failed to fetch shared trips: ${invitedTripsError.message}` };
   }
 
-  const merged = [...ownerTripsResult.data, ...invitedTrips];
-  const uniqueById = new Map<string, Database['public']['Tables']['trips']['Row']>();
-  for (const trip of merged) {
-    uniqueById.set(trip.id, trip);
-  }
-  const data = Array.from(uniqueById.values()).sort((a, b) => {
-    if (a.start_date === b.start_date) {
-      return b.created_at.localeCompare(a.created_at);
-    }
-    return a.start_date.localeCompare(b.start_date);
-  });
-
-  return { data: data.map(mapTrip), error: null };
+  return mergeWithGrantedTrips([...ownerTripsResult.data, ...invitedTrips]);
 }
 
 export async function getTripById(
