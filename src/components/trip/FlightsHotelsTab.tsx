@@ -813,7 +813,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
-        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
+        <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Close">
               <CloseIcon fontSize="small" />
@@ -832,7 +832,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </Button>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={0.5}>
+          <Typography variant="h5" fontWeight={700} mt={1}>
             {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
           </Typography>
         </DialogTitle>
@@ -873,7 +873,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
-        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
+        <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Close">
               <CloseIcon fontSize="small" />
@@ -892,7 +892,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </Button>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={0.5}>
+          <Typography variant="h5" fontWeight={700} mt={1}>
             {previewHotel?.name ?? ''}
           </Typography>
         </DialogTitle>

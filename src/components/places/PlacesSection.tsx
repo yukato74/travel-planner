@@ -918,7 +918,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                       label={hotel.name}
                       size="small"
                       variant="outlined"
-                      sx={{ '& .MuiChip-icon': { ml: 0.5 } }}
+                      sx={{ pl: 0.5, '& .MuiChip-icon': { ml: 0.75 } }}
                     />
                   ))}
                 </Stack>
@@ -947,7 +947,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
-        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
+        <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Close">
               <CloseIcon fontSize="small" />
@@ -966,7 +966,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               </Button>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={0.5}>
+          <Typography variant="h5" fontWeight={700} mt={1}>
             {previewPlace?.name ?? ''}
           </Typography>
         </DialogTitle>
