@@ -4,6 +4,8 @@ import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -36,13 +38,20 @@ type AirportOption = {
   value: string;
 };
 
-function getAirportNameFromOptionLabel(label: string): string {
-  const beforeCode = label.split(' (')[0]?.trim();
-  if (beforeCode) {
-    return beforeCode;
+function parseAirportLabel(label: string): { name: string; code: string } {
+  const trimmed = label.trim();
+  const nameAndCode = trimmed.split(' · ')[0]?.trim() ?? trimmed;
+  const match = nameAndCode.match(/^(.*?)\s*\(([A-Za-z0-9]{3,4})\)\s*$/);
+  if (match) {
+    return {
+      name: match[1]?.trim() ?? '',
+      code: (match[2] ?? '').toUpperCase(),
+    };
   }
-  const beforeLocation = label.split(' · ')[0]?.trim();
-  return beforeLocation || label;
+  return {
+    name: nameAndCode,
+    code: '',
+  };
 }
 
 function formatAirportDisplayName(value: string): string {
@@ -50,7 +59,24 @@ function formatAirportDisplayName(value: string): string {
   if (!trimmed) {
     return '-';
   }
-  return getAirportNameFromOptionLabel(trimmed);
+  const { name, code } = parseAirportLabel(trimmed);
+  if (code && name) {
+    return `${code} · ${name}`;
+  }
+  return name || trimmed;
+}
+
+function formatAirportCode(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '-';
+  }
+  const { name, code } = parseAirportLabel(trimmed);
+  return code || name || trimmed;
+}
+
+function formatFlightLine(place: string, dateTime: string): string {
+  return `${formatAirportCode(place)} · ${formatMonthDayTime(dateTime)}`;
 }
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -172,7 +198,7 @@ function AirportAutocompleteField({
       filterOptions={(candidateOptions) => candidateOptions}
       renderOption={(props, option) => (
         <li {...props} key={option.id}>
-          {getAirportNameFromOptionLabel(option.label)}
+          {formatAirportDisplayName(option.label)}
         </li>
       )}
       loading={loading}
@@ -499,7 +525,6 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
           ) : (
             <Stack spacing={1}>
               {flights.map((flight) => {
-                const dayDiff = getDayDiff(flight.departureTime, flight.arrivalTime);
                 return (
                 <Paper
                   key={flight.id}
@@ -507,11 +532,16 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                   onClick={() => {
                     setPreviewFlight(flight);
                   }}
-                  sx={{ p: 1.25, cursor: 'pointer' }}
+                  sx={{ p: 1, cursor: 'pointer' }}
                 >
-                  <Stack spacing={0.6}>
+                  <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                      <Typography fontWeight={700}>{flight.airline} {flight.flightNumber}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" minWidth={0}>
+                        <FlightTakeoffIcon fontSize="small" color="action" />
+                        <Typography variant="body1" fontWeight={600} noWrap>
+                          {formatFlightLine(flight.departureAirport, flight.departureTime)}
+                        </Typography>
+                      </Stack>
                       {canEdit && (
                         <IconButton
                           size="small"
@@ -525,17 +555,15 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                         </IconButton>
                       )}
                     </Stack>
-                    <Typography variant="body2" color="text.secondary">
-                      {formatAirportDisplayName(flight.departureAirport)} {'→'} {formatAirportDisplayName(flight.arrivalAirport)}
+                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'left' }}>
+                      {flight.airline} {flight.flightNumber}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {formatMonthDayTime(flight.departureTime)} - {formatMonthDayTime(flight.arrivalTime)}
-                    </Typography>
-                    {dayDiff > 0 && (
-                      <Typography variant="caption" color="text.secondary">
-                        Arrives +{dayDiff} day{dayDiff > 1 ? 's' : ''}
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <FlightLandIcon fontSize="small" color="action" />
+                      <Typography variant="body1" fontWeight={600}>
+                        {formatFlightLine(flight.arrivalAirport, flight.arrivalTime)}
                       </Typography>
-                    )}
+                    </Stack>
                   </Stack>
                 </Paper>
                 );
