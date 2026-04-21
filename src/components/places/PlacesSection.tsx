@@ -138,6 +138,8 @@ const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
   return <Slide direction="left" ref={ref} {...props} />;
 });
 
+const OPEN_BOOKING_EDIT_STORAGE_KEY = 'open-booking-edit-request';
+
 type DaySectionProps = {
   date: string;
   dayLabel: string;
@@ -150,12 +152,15 @@ type DaySectionProps = {
   onOpenAdd: (date: string) => void;
   onEdit: (place: Place) => void;
   onDelete: (place: Place) => void;
+  onPreviewFlight: (flightId: string) => void;
 };
 
 function FlightItem({
   item,
+  onClick,
 }: {
   item: ItineraryFlightItem;
+  onClick: () => void;
 }) {
   const [departureCode, departureDateTime = ''] = item.departureLabel.split(' · ');
   const [arrivalCode, arrivalDateTime = ''] = item.arrivalLabel.split(' · ');
@@ -163,6 +168,7 @@ function FlightItem({
   return (
     <Paper
       variant="outlined"
+      onClick={onClick}
       sx={{
         p: 1,
         mb: 0,
@@ -170,6 +176,7 @@ function FlightItem({
         borderRadius: 1,
         borderColor: 'divider',
         bgcolor: 'background.paper',
+        cursor: 'pointer',
       }}
     >
       <Stack spacing={0.5}>
@@ -240,6 +247,7 @@ function DaySection({
   onOpenAdd,
   onEdit,
   onDelete,
+  onPreviewFlight,
 }: DaySectionProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: date,
@@ -308,7 +316,7 @@ function DaySection({
                     const shouldShowInsertAfter = !isBlockedBoundary(orderedItemIds, index + 1, flightItemById);
                     return (
                       <Box key={flight.id}>
-                        <FlightItem item={flight} />
+                        <FlightItem item={flight} onClick={() => onPreviewFlight(flight.flightId)} />
                         {shouldShowInsertAfter ? <InsertDropZone id={`insert:${date}:${index + 1}`} /> : <NonDroppableGap />}
                       </Box>
                     );
@@ -341,6 +349,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const previewPlaceHistoryPushedRef = useRef(false);
+  const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
+  const [previewHotel, setPreviewHotel] = useState<Hotel | null>(null);
+  const previewBookingHistoryPushedRef = useRef(false);
   const [editName, setEditName] = useState('');
   const [editAddress, setEditAddress] = useState('');
   const [editMemo, setEditMemo] = useState('');
@@ -641,6 +652,48 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setPreviewPlace(null);
   }, []);
 
+  const openPreviewFlight = useCallback((flightId: string) => {
+    const target = flights.find((item) => item.id === flightId);
+    if (!target) {
+      return;
+    }
+    setPreviewHotel(null);
+    setPreviewFlight(target);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'flight' }, '');
+      previewBookingHistoryPushedRef.current = true;
+    }
+  }, [flights]);
+
+  const openPreviewHotel = (hotel: Hotel) => {
+    setPreviewFlight(null);
+    setPreviewHotel(hotel);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'hotel' }, '');
+      previewBookingHistoryPushedRef.current = true;
+    }
+  };
+
+  const closePreviewBooking = useCallback(() => {
+    if (previewBookingHistoryPushedRef.current && typeof window !== 'undefined') {
+      previewBookingHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setPreviewFlight(null);
+    setPreviewHotel(null);
+  }, []);
+
+  const openBookingEdit = (request: { kind: 'flight' | 'hotel'; id: string }) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(OPEN_BOOKING_EDIT_STORAGE_KEY, JSON.stringify(request));
+      window.dispatchEvent(new CustomEvent('open-booking-edit', { detail: request }));
+    }
+    previewBookingHistoryPushedRef.current = false;
+    setPreviewFlight(null);
+    setPreviewHotel(null);
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -656,6 +709,23 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       window.removeEventListener('popstate', handlePopState);
     };
   }, [previewPlace]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handlePopState = () => {
+      if (previewBookingHistoryPushedRef.current || previewFlight || previewHotel) {
+        previewBookingHistoryPushedRef.current = false;
+        setPreviewFlight(null);
+        setPreviewHotel(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [previewFlight, previewHotel]);
 
   const handleSubmitEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -891,7 +961,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     );
   }
 
-  const previewOpen = Boolean(previewPlace);
+  const previewOpen = Boolean(previewPlace || previewFlight || previewHotel);
 
   return (
     <Stack
@@ -928,6 +998,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 shortDate={dayMeta.find((item) => item.date === date)?.shortDate ?? date}
                 onEdit={openPreviewPlace}
                 onDelete={(place) => setDeletingPlace(place)}
+                onPreviewFlight={openPreviewFlight}
               />
               {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
                 <Stack direction="row" justifyContent="center" flexWrap="wrap" gap={0.75} mt={1.25} px={0.5}>
@@ -938,7 +1009,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                       label={hotel.name}
                       size="small"
                       variant="outlined"
-                      sx={{ pl: 0.5, '& .MuiChip-icon': { ml: 0.75 } }}
+                      onClick={() => openPreviewHotel(hotel)}
+                      sx={{ pl: 0.5, cursor: 'pointer', '& .MuiChip-icon': { ml: 0.75 } }}
                     />
                   ))}
                 </Stack>
@@ -1018,6 +1090,98 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 <Divider />
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
                   {previewPlace.memo}
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        </Box>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(previewFlight)}
+        onClose={closePreviewBooking}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
+        <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewFlight && (
+              <Button variant="contained" size="small" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={1}>
+            {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Typography variant="body1" color="text.secondary">
+              {formatAirportCode(previewFlight?.departureAirport ?? '')} {'→'} {formatAirportCode(previewFlight?.arrivalAirport ?? '')}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
+            </Typography>
+            {previewFlight?.memo && (
+              <>
+                <Divider />
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+                  {previewFlight.memo}
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        </Box>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(previewHotel)}
+        onClose={closePreviewBooking}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
+        <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewHotel && (
+              <Button variant="contained" size="small" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={1}>
+            {previewHotel?.name ?? ''}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Typography variant="body1" color="text.secondary">
+              {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
+            </Typography>
+            {previewHotel?.address && <Typography variant="body1">{previewHotel.address}</Typography>}
+            {previewHotel?.memo && (
+              <>
+                <Divider />
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+                  {previewHotel.memo}
                 </Typography>
               </>
             )}

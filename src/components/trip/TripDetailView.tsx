@@ -43,6 +43,17 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
+  useEffect(() => {
+    const openBookingEditHandler = () => {
+      setActiveTab(1);
+    };
+
+    window.addEventListener('open-booking-edit', openBookingEditHandler);
+    return () => {
+      window.removeEventListener('open-booking-edit', openBookingEditHandler);
+    };
+  }, []);
+
   const loadTripData = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);

@@ -38,6 +38,13 @@ type FlightsHotelsTabProps = {
   canEdit?: boolean;
 };
 
+type BookingEditRequest = {
+  kind: 'flight' | 'hotel';
+  id: string;
+};
+
+const OPEN_BOOKING_EDIT_STORAGE_KEY = 'open-booking-edit-request';
+
 type AirportOption = {
   id: string;
   label: string;
@@ -427,6 +434,30 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     setPreviewHotel(null);
   }, []);
 
+  const openBookingEdit = useCallback((request: BookingEditRequest) => {
+    if (request.kind === 'flight') {
+      const target = flights.find((item) => item.id === request.id);
+      if (!target) {
+        return false;
+      }
+      previewHistoryPushedRef.current = false;
+      setPreviewFlight(null);
+      setPreviewHotel(null);
+      openEditFlight(target);
+      return true;
+    }
+
+    const target = hotels.find((item) => item.id === request.id);
+    if (!target) {
+      return false;
+    }
+    previewHistoryPushedRef.current = false;
+    setPreviewFlight(null);
+    setPreviewHotel(null);
+    setEditingHotel(target);
+    return true;
+  }, [flights, hotels]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -468,6 +499,50 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       window.removeEventListener('popstate', handlePopState);
     };
   }, [previewFlight, previewHotel]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleOpenBookingEdit = (event: Event) => {
+      const customEvent = event as CustomEvent<BookingEditRequest>;
+      const request = customEvent.detail;
+      if (!request?.id || (request.kind !== 'flight' && request.kind !== 'hotel')) {
+        return;
+      }
+      const opened = openBookingEdit(request);
+      if (opened) {
+        sessionStorage.removeItem(OPEN_BOOKING_EDIT_STORAGE_KEY);
+      } else {
+        sessionStorage.setItem(OPEN_BOOKING_EDIT_STORAGE_KEY, JSON.stringify(request));
+      }
+    };
+
+    window.addEventListener('open-booking-edit', handleOpenBookingEdit);
+    return () => {
+      window.removeEventListener('open-booking-edit', handleOpenBookingEdit);
+    };
+  }, [openBookingEdit]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const serialized = sessionStorage.getItem(OPEN_BOOKING_EDIT_STORAGE_KEY);
+    if (!serialized || loading) {
+      return;
+    }
+    try {
+      const request = JSON.parse(serialized) as BookingEditRequest;
+      const opened = openBookingEdit(request);
+      if (opened) {
+        sessionStorage.removeItem(OPEN_BOOKING_EDIT_STORAGE_KEY);
+      }
+    } catch {
+      sessionStorage.removeItem(OPEN_BOOKING_EDIT_STORAGE_KEY);
+    }
+  }, [loading, openBookingEdit]);
 
   const handleAddFlight = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
