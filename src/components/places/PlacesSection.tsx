@@ -1001,18 +1001,28 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 onPreviewFlight={openPreviewFlight}
               />
               {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
-                <Stack direction="row" justifyContent="center" flexWrap="wrap" gap={0.75} mt={1.25} px={0.5}>
-                  {hotelsByDay.get(date)!.map((hotel) => (
-                    <Chip
-                      key={`${date}:${hotel.id}`}
-                      icon={<HotelIcon fontSize="small" />}
-                      label={hotel.name}
-                      size="small"
-                      variant="outlined"
-                      onClick={() => openPreviewHotel(hotel)}
-                      sx={{ pl: 0.5, cursor: 'pointer', '& .MuiChip-icon': { ml: 0.75 } }}
-                    />
-                  ))}
+                <Stack px={0.5} spacing={0} alignItems="center" sx={{ mb: -1.5 }}>
+                  <Box sx={{ height: 12, borderLeft: '2px solid', borderColor: 'rgba(7, 112, 227, 0.22)' }} />
+                  <Stack direction="row" justifyContent="center" flexWrap="wrap" gap={0.75}>
+                    {hotelsByDay.get(date)!.map((hotel) => (
+                      <Chip
+                        key={`${date}:${hotel.id}`}
+                        icon={<HotelIcon fontSize="small" />}
+                        label={hotel.name}
+                        size="small"
+                        variant="outlined"
+                        onClick={() => openPreviewHotel(hotel)}
+                        sx={{
+                          pl: 0.5,
+                          pr: 0.75,
+                          cursor: 'pointer',
+                          '& .MuiChip-icon': { ml: 0.75 },
+                          '& .MuiChip-label': { pr: 0.75 },
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                  <Box sx={{ height: 12, borderLeft: '2px solid', borderColor: 'rgba(7, 112, 227, 0.22)' }} />
                 </Stack>
               )}
             </Grid>
