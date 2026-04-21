@@ -808,7 +808,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
@@ -868,7 +868,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
@@ -985,7 +985,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box component="form" onSubmit={handleSaveFlight} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit flight</DialogTitle>
@@ -1108,7 +1108,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box component="form" onSubmit={handleSaveHotel} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit hotel</DialogTitle>

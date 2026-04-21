@@ -275,7 +275,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
@@ -342,7 +342,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box component="form" onSubmit={handleSaveEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
