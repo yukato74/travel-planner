@@ -3,6 +3,7 @@
 import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
@@ -22,7 +23,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enumerateDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
@@ -353,6 +354,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
   const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
   const [previewHotel, setPreviewHotel] = useState<Hotel | null>(null);
+  const previewHistoryPushedRef = useRef(false);
   const [deletingFlight, setDeletingFlight] = useState<Flight | null>(null);
   const [deletingHotel, setDeletingHotel] = useState<Hotel | null>(null);
 
@@ -395,6 +397,32 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     });
   };
 
+  const openPreviewFlight = (flight: Flight) => {
+    setPreviewFlight(flight);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'flight' }, '');
+      previewHistoryPushedRef.current = true;
+    }
+  };
+
+  const openPreviewHotel = (hotel: Hotel) => {
+    setPreviewHotel(hotel);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'hotel' }, '');
+      previewHistoryPushedRef.current = true;
+    }
+  };
+
+  const closePreview = useCallback(() => {
+    if (previewHistoryPushedRef.current && typeof window !== 'undefined') {
+      previewHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setPreviewFlight(null);
+    setPreviewHotel(null);
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -419,6 +447,23 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handlePopState = () => {
+      if (previewHistoryPushedRef.current || previewFlight || previewHotel) {
+        previewHistoryPushedRef.current = false;
+        setPreviewFlight(null);
+        setPreviewHotel(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [previewFlight, previewHotel]);
 
   const handleAddFlight = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -659,7 +704,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   key={flight.id}
                   variant="outlined"
                   onClick={() => {
-                    setPreviewFlight(flight);
+                    openPreviewFlight(flight);
                   }}
                   sx={{ p: 1, cursor: 'pointer' }}
                 >
@@ -725,7 +770,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   key={hotel.id}
                   variant="outlined"
                   onClick={() => {
-                    setPreviewHotel(hotel);
+                    openPreviewHotel(hotel);
                   }}
                   sx={{ p: 1.25, cursor: 'pointer' }}
                 >
@@ -757,26 +802,48 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(previewFlight)} onClose={() => setPreviewFlight(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle>{previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}</DialogTitle>
+      <Dialog open={Boolean(previewFlight)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewFlight && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  previewHistoryPushedRef.current = false;
+                  openEditFlight(previewFlight);
+                  setPreviewFlight(null);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={0.5}>
+            {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           {previewFlight && (
           <Stack spacing={1} mt={0.5}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               {formatAirportDisplayName(previewFlight?.departureAirport ?? '')} {'→'} {formatAirportDisplayName(previewFlight?.arrivalAirport ?? '')}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
             </Typography>
             {previewFlightDayDiff > 0 && (
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Overnight / multi-day flight (+{previewFlightDayDiff} day{previewFlightDayDiff > 1 ? 's' : ''})
               </Typography>
             )}
             {previewFlight?.memo && (
               <>
                 <Divider />
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
                   {previewFlight.memo}
                 </Typography>
               </>
@@ -784,58 +851,48 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
           </Stack>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPreviewFlight(null)} color="inherit">
-            Close
-          </Button>
-          {canEdit && previewFlight && (
-            <Button
-              variant="contained"
-              onClick={() => {
-                openEditFlight(previewFlight);
-                setPreviewFlight(null);
-              }}
-            >
-              Edit
-            </Button>
-          )}
-        </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(previewHotel)} onClose={() => setPreviewHotel(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle>{previewHotel?.name ?? ''}</DialogTitle>
+      <Dialog open={Boolean(previewHotel)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewHotel && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  previewHistoryPushedRef.current = false;
+                  setEditingHotel(previewHotel);
+                  setPreviewHotel(null);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={0.5}>
+            {previewHotel?.name ?? ''}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
             </Typography>
-            {previewHotel?.address && <Typography variant="body2">{previewHotel.address}</Typography>}
+            {previewHotel?.address && <Typography variant="body1">{previewHotel.address}</Typography>}
             {previewHotel?.memo && (
               <>
                 <Divider />
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
                   {previewHotel.memo}
                 </Typography>
               </>
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPreviewHotel(null)} color="inherit">
-            Close
-          </Button>
-          {canEdit && previewHotel && (
-            <Button
-              variant="contained"
-              onClick={() => {
-                setEditingHotel(previewHotel);
-                setPreviewHotel(null);
-              }}
-            >
-              Edit
-            </Button>
-          )}
-        </DialogActions>
       </Dialog>
 
       <Dialog

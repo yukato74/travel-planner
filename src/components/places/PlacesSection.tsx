@@ -16,6 +16,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import FlightLandIcon from '@mui/icons-material/FlightLand';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -30,6 +31,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -38,7 +40,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
 import { listHotelsByTripId } from '@/lib/hotels/service';
@@ -320,6 +322,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
+  const previewPlaceHistoryPushedRef = useRef(false);
   const [editName, setEditName] = useState('');
   const [editAddress, setEditAddress] = useState('');
   const [editMemo, setEditMemo] = useState('');
@@ -603,6 +606,39 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setEditVisitDate(place.visitDate);
   };
 
+  const openPreviewPlace = (place: Place) => {
+    setPreviewPlace(place);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'place' }, '');
+      previewPlaceHistoryPushedRef.current = true;
+    }
+  };
+
+  const closePreviewPlace = useCallback(() => {
+    if (previewPlaceHistoryPushedRef.current && typeof window !== 'undefined') {
+      previewPlaceHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setPreviewPlace(null);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handlePopState = () => {
+      if (previewPlaceHistoryPushedRef.current || previewPlace) {
+        previewPlaceHistoryPushedRef.current = false;
+        setPreviewPlace(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [previewPlace]);
+
   const handleSubmitEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canEdit) {
@@ -861,7 +897,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 }}
                 dayLabel={dayMeta.find((item) => item.date === date)?.dayLabel ?? date}
                 shortDate={dayMeta.find((item) => item.date === date)?.shortDate ?? date}
-                onEdit={(place) => setPreviewPlace(place)}
+                onEdit={openPreviewPlace}
                 onDelete={(place) => setDeletingPlace(place)}
               />
               {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
@@ -893,17 +929,39 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         </DragOverlay>
       </DndContext>
 
-      <Dialog open={Boolean(previewPlace)} onClose={() => setPreviewPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle>{previewPlace?.name ?? ''}</DialogTitle>
+      <Dialog open={Boolean(previewPlace)} onClose={closePreviewPlace} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewPlace && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  previewPlaceHistoryPushedRef.current = false;
+                  openEditDialog(previewPlace);
+                  setPreviewPlace(null);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={0.5}>
+            {previewPlace?.name ?? ''}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               Visit date: {previewPlace?.visitDate}
             </Typography>
             {previewPlace?.address && (
               isHttpUrl(previewPlace.address) ? (
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   component="a"
                   href={previewPlace.address}
                   target="_blank"
@@ -913,35 +971,19 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   {previewPlace.address}
                 </Typography>
               ) : (
-                <Typography variant="body2">{previewPlace.address}</Typography>
+                <Typography variant="body1">{previewPlace.address}</Typography>
               )
             )}
             {previewPlace?.memo && (
               <>
                 <Divider />
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
                   {previewPlace.memo}
                 </Typography>
               </>
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPreviewPlace(null)} color="inherit">
-            Close
-          </Button>
-          {canEdit && previewPlace && (
-            <Button
-              variant="contained"
-              onClick={() => {
-                openEditDialog(previewPlace);
-                setPreviewPlace(null);
-              }}
-            >
-              Edit
-            </Button>
-          )}
-        </DialogActions>
       </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>

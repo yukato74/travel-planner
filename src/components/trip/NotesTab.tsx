@@ -2,6 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -18,7 +19,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Note } from '@/lib/types/trip';
@@ -40,6 +41,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [previewNote, setPreviewNote] = useState<Note | null>(null);
+  const previewNoteHistoryPushedRef = useRef(false);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
 
   const theme = useTheme();
@@ -65,6 +67,39 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   useEffect(() => {
     void loadNotes();
   }, [loadNotes]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handlePopState = () => {
+      if (previewNoteHistoryPushedRef.current || previewNote) {
+        previewNoteHistoryPushedRef.current = false;
+        setPreviewNote(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [previewNote]);
+
+  const openPreviewNote = (note: Note) => {
+    setPreviewNote(note);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({ ...window.history.state, previewModal: 'note' }, '');
+      previewNoteHistoryPushedRef.current = true;
+    }
+  };
+
+  const closePreviewNote = useCallback(() => {
+    if (previewNoteHistoryPushedRef.current && typeof window !== 'undefined') {
+      previewNoteHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setPreviewNote(null);
+  }, []);
 
   const handleAdd = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -206,7 +241,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                   key={note.id}
                   variant="outlined"
                   onClick={() => {
-                    setPreviewNote(note);
+                    openPreviewNote(note);
                   }}
                   sx={{ p: 1.25, cursor: 'pointer' }}
                 >
@@ -234,32 +269,38 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(previewNote)} onClose={() => setPreviewNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle>{previewNote?.title ?? ''}</DialogTitle>
+      <Dialog open={Boolean(previewNote)} onClose={closePreviewNote} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
+            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+            {canEdit && previewNote && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  previewNoteHistoryPushedRef.current = false;
+                  setEditingNote(previewNote);
+                  setPreviewNote(null);
+                }}
+              >
+                Edit
+              </Button>
+            )}
+          </Stack>
+          <Typography variant="h5" fontWeight={700} mt={0.5}>
+            {previewNote?.title ?? ''}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
             <Divider />
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
               {previewNote?.content}
             </Typography>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPreviewNote(null)} color="inherit">
-            Close
-          </Button>
-          {canEdit && previewNote && (
-            <Button
-              variant="contained"
-              onClick={() => {
-                setEditingNote(previewNote);
-                setPreviewNote(null);
-              }}
-            >
-              Edit
-            </Button>
-          )}
-        </DialogActions>
       </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
