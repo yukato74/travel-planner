@@ -929,7 +929,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         </DragOverlay>
       </DndContext>
 
-      <Dialog open={Boolean(previewPlace)} onClose={closePreviewPlace} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={Boolean(previewPlace)}
+        onClose={closePreviewPlace}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
@@ -984,6 +992,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             )}
           </Stack>
         </DialogContent>
+        </Box>
       </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
@@ -1038,8 +1047,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         </Box>
       </Dialog>
 
-      <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleSubmitEdit}>
+      <Dialog
+        open={canEdit && Boolean(editingPlace)}
+        onClose={() => setEditingPlace(null)}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box component="form" onSubmit={handleSubmitEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit place</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>

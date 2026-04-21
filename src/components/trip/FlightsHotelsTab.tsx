@@ -802,7 +802,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(previewFlight)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={Boolean(previewFlight)}
+        onClose={closePreview}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
@@ -851,9 +859,18 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
           </Stack>
           )}
         </DialogContent>
+        </Box>
       </Dialog>
 
-      <Dialog open={Boolean(previewHotel)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={Boolean(previewHotel)}
+        onClose={closePreview}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
@@ -893,6 +910,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             )}
           </Stack>
         </DialogContent>
+        </Box>
       </Dialog>
 
       <Dialog
@@ -967,8 +985,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
       >
-        <Box component="form" onSubmit={handleSaveFlight}>
+        <Box component="form" onSubmit={handleSaveFlight} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit flight</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
@@ -1083,8 +1102,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         </Box>
       </Dialog>
 
-      <Dialog open={canEdit && Boolean(editingHotel)} onClose={() => setEditingHotel(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleSaveHotel}>
+      <Dialog
+        open={canEdit && Boolean(editingHotel)}
+        onClose={() => setEditingHotel(null)}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box component="form" onSubmit={handleSaveHotel} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit hotel</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>

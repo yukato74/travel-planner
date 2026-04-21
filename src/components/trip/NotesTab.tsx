@@ -269,7 +269,15 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         </Stack>
       </Paper>
 
-      <Dialog open={Boolean(previewNote)} onClose={closePreviewNote} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={Boolean(previewNote)}
+        onClose={closePreviewNote}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
@@ -301,6 +309,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
             </Typography>
           </Stack>
         </DialogContent>
+        </Box>
       </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
@@ -327,8 +336,15 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         </Box>
       </Dialog>
 
-      <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleSaveEdit}>
+      <Dialog
+        open={canEdit && Boolean(editingNote)}
+        onClose={() => setEditingNote(null)}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'transparent' } }}
+      >
+        <Box component="form" onSubmit={handleSaveEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
