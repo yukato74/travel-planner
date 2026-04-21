@@ -17,8 +17,7 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -162,21 +161,18 @@ function FlightItem({
       }}
     >
       <Stack spacing={0.5}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FlightTakeoffIcon fontSize="small" color="action" />
-          <Typography variant="body1" fontWeight={600}>
-            {item.departureLabel}
-          </Typography>
-        </Stack>
-        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'left' }}>
-          {item.flightInfo}
+        <Typography variant="body1" fontWeight={600}>
+          {item.departureLabel}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FlightLandIcon fontSize="small" color="action" />
-          <Typography variant="body1" fontWeight={600}>
-            {item.arrivalLabel}
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <FlightIcon fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'left' }}>
+            {item.flightInfo}
           </Typography>
         </Stack>
+        <Typography variant="body1" fontWeight={600}>
+          {item.arrivalLabel}
+        </Typography>
       </Stack>
     </Paper>
   );

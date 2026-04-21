@@ -5,8 +5,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import FlightIcon from '@mui/icons-material/Flight';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -710,12 +709,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 >
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-                      <Stack direction="row" spacing={1} alignItems="center" minWidth={0}>
-                        <FlightTakeoffIcon fontSize="small" color="action" />
-                        <Typography variant="body1" fontWeight={600} noWrap>
-                          {formatFlightLine(flight.departureAirport, flight.departureTime)}
-                        </Typography>
-                      </Stack>
+                      <Typography variant="body1" fontWeight={600} noWrap>
+                        {formatFlightLine(flight.departureAirport, flight.departureTime)}
+                      </Typography>
                       {canEdit && (
                         <IconButton
                           size="small"
@@ -729,15 +725,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                         </IconButton>
                       )}
                     </Stack>
-                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'left' }}>
-                      {flight.airline} {flight.flightNumber}
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <FlightLandIcon fontSize="small" color="action" />
-                      <Typography variant="body1" fontWeight={600}>
-                        {formatFlightLine(flight.arrivalAirport, flight.arrivalTime)}
+                    <Stack direction="row" spacing={0.75} alignItems="center">
+                      <FlightIcon fontSize="small" color="action" />
+                      <Typography variant="body2" color="text.secondary">
+                        {flight.airline} {flight.flightNumber}
                       </Typography>
                     </Stack>
+                    <Typography variant="body1" fontWeight={600}>
+                        {formatFlightLine(flight.arrivalAirport, flight.arrivalTime)}
+                    </Typography>
                   </Stack>
                 </Paper>
                 );
