@@ -13,6 +13,9 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
+import FlightLandIcon from '@mui/icons-material/FlightLand';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import HotelIcon from '@mui/icons-material/Hotel';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -196,13 +199,16 @@ function FlightItem({
           : undefined,
       }}
     >
-      <Stack spacing={0.25}>
-        <Typography variant="body1" fontWeight={600}>
-          {item.title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {item.subtitle}
-        </Typography>
+      <Stack direction="row" spacing={1} alignItems="center">
+        {item.kind === 'departure' ? <FlightTakeoffIcon fontSize="small" color="action" /> : <FlightLandIcon fontSize="small" color="action" />}
+        <Stack spacing={0.25}>
+          <Typography variant="body1" fontWeight={600}>
+            {item.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {item.subtitle}
+          </Typography>
+        </Stack>
       </Stack>
     </Paper>
   );
@@ -420,7 +426,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
           visitDate: departureDate,
           counterpartDate: arrivalDate,
           kind: 'departure',
-          title: `${flight.airline} ${flight.flightNumber} departure`,
+          title: `${flight.airline} ${flight.flightNumber}`,
           subtitle: `${flight.departureAirport || '-'} at ${formatTimeOnly(flight.departureTime)}`,
           dateTime: flight.departureTime,
           isOvernight,
@@ -433,7 +439,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
           visitDate: arrivalDate,
           counterpartDate: departureDate,
           kind: 'arrival',
-          title: `${flight.airline} ${flight.flightNumber} arrival`,
+          title: `${flight.airline} ${flight.flightNumber}`,
           subtitle: `${flight.arrivalAirport || '-'} at ${formatTimeOnly(flight.arrivalTime)}`,
           dateTime: flight.arrivalTime,
           isOvernight,
@@ -903,7 +909,14 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
                 <Stack direction="row" justifyContent="center" flexWrap="wrap" gap={0.75} mt={1.25} px={0.5}>
                   {hotelsByDay.get(date)!.map((hotel) => (
-                    <Chip key={`${date}:${hotel.id}`} label={`Hotel: ${hotel.name}`} size="small" variant="outlined" />
+                    <Chip
+                      key={`${date}:${hotel.id}`}
+                      icon={<HotelIcon fontSize="small" />}
+                      label={hotel.name}
+                      size="small"
+                      variant="outlined"
+                      sx={{ '& .MuiChip-icon': { ml: 0.5 } }}
+                    />
                   ))}
                 </Stack>
               )}
