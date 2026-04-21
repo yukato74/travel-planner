@@ -29,6 +29,20 @@ type FlightsHotelsTabProps = {
   canEdit?: boolean;
 };
 
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatMonthDayTime(value: string): string {
+  const [datePart, timePart = ''] = value.split('T');
+  const [year, month, day] = datePart.split('-');
+  if (!year || !month || !day) {
+    return value;
+  }
+  const monthLabel = MONTH_LABELS[Number(month) - 1] ?? month;
+  const dayNum = Number(day);
+  const hhmm = timePart.slice(0, 5);
+  return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
+}
+
 export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -356,7 +370,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                       {flight.departureAirport || '-'} {'→'} {flight.arrivalAirport || '-'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {flight.departureTime} - {flight.arrivalTime}
+                      {formatMonthDayTime(flight.departureTime)} - {formatMonthDayTime(flight.arrivalTime)}
                     </Typography>
                   </Stack>
                 </Paper>
@@ -429,7 +443,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
               {previewFlight?.departureAirport || '-'} {'→'} {previewFlight?.arrivalAirport || '-'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {previewFlight?.departureTime} - {previewFlight?.arrivalTime}
+              {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
             </Typography>
             {previewFlight?.memo && (
               <>

@@ -12,11 +12,12 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -34,9 +35,26 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { PlaceItem } from '@/components/places/PlaceItem';
+import { listFlightsByTripId } from '@/lib/flights/service';
+import { listHotelsByTripId } from '@/lib/hotels/service';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
-import { Place, PlaceOrderUpdate } from '@/lib/types/trip';
+import { Flight, Hotel, Place, PlaceOrderUpdate } from '@/lib/types/trip';
+
+type ItineraryFlightItem = {
+  id: string;
+  flightId: string;
+  visitDate: string;
+  kind: 'departure' | 'arrival';
+  title: string;
+  subtitle: string;
+  dateTime: string;
+};
+
+function formatTimeOnly(value: string): string {
+  const timePart = value.split('T')[1];
+  return timePart ? timePart.slice(0, 5) : value;
+}
 
 type PlacesSectionProps = {
   tripId: string;
@@ -49,6 +67,8 @@ type DaySectionProps = {
   dayLabel: string;
   shortDate: string;
   places: Place[];
+  flights: ItineraryFlightItem[];
+  orderedItemIds: string[];
   saving: boolean;
   canEdit: boolean;
   onOpenAdd: (date: string) => void;
@@ -56,11 +76,39 @@ type DaySectionProps = {
   onDelete: (place: Place) => void;
 };
 
+function FlightItem({ item }: { item: ItineraryFlightItem }) {
+  const { setNodeRef, isOver } = useDroppable({ id: item.id });
+
+  return (
+    <Paper
+      ref={setNodeRef}
+      variant="outlined"
+      sx={{
+        p: 1,
+        mb: 1,
+        borderRadius: 1,
+        borderColor: isOver ? 'primary.main' : 'divider',
+      }}
+    >
+      <Stack spacing={0.25}>
+        <Typography variant="body1" fontWeight={600}>
+          {item.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {item.subtitle}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
 function DaySection({
   date,
   dayLabel,
   shortDate,
   places,
+  flights,
+  orderedItemIds,
   saving,
   canEdit,
   onOpenAdd,
@@ -102,16 +150,37 @@ function DaySection({
 
         <Divider />
 
-        <SortableContext items={places.map((place) => place.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={orderedItemIds.filter((id) => places.some((place) => place.id === id))} strategy={verticalListSortingStrategy}>
           <List disablePadding>
-            {places.length === 0 ? (
+            {places.length === 0 && flights.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
                 No places for this day yet.
               </Typography>
             ) : (
-              places.map((place) => (
-                <PlaceItem key={place.id} place={place} onEdit={onEdit} onDelete={onDelete} disabled={saving} canEdit={canEdit} />
-              ))
+              <>
+                {orderedItemIds.map((id) => {
+                  const place = places.find((item) => item.id === id);
+                  if (place) {
+                    return (
+                      <PlaceItem
+                        key={place.id}
+                        place={place}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        disabled={saving}
+                        canEdit={canEdit}
+                      />
+                    );
+                  }
+
+                  const flight = flights.find((item) => item.id === id);
+                  if (flight) {
+                    return <FlightItem key={flight.id} item={flight} />;
+                  }
+
+                  return null;
+                })}
+              </>
             )}
           </List>
         </SortableContext>
@@ -122,6 +191,8 @@ function DaySection({
 
 export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSectionProps) {
   const [places, setPlaces] = useState<Place[]>([]);
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -141,6 +212,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [deletingPlace, setDeletingPlace] = useState<Place | null>(null);
 
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+  const [dayItemOrderByDay, setDayItemOrderByDay] = useState<Record<string, string[]>>({});
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -174,6 +246,72 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     return groups;
   }, [dateOptions, places]);
 
+  const itineraryFlightItems = useMemo(() => {
+    const daySet = new Set(dateOptions);
+    const items: ItineraryFlightItem[] = [];
+    for (const flight of flights) {
+      const departureDate = flight.departureTime.slice(0, 10);
+      const arrivalDate = flight.arrivalTime.slice(0, 10);
+      if (daySet.has(departureDate)) {
+        items.push({
+          id: `flight:${flight.id}:departure`,
+          flightId: flight.id,
+          visitDate: departureDate,
+          kind: 'departure',
+          title: `${flight.airline} ${flight.flightNumber} departure`,
+          subtitle: `${flight.departureAirport || '-'} at ${formatTimeOnly(flight.departureTime)}`,
+          dateTime: flight.departureTime,
+        });
+      }
+      if (daySet.has(arrivalDate)) {
+        items.push({
+          id: `flight:${flight.id}:arrival`,
+          flightId: flight.id,
+          visitDate: arrivalDate,
+          kind: 'arrival',
+          title: `${flight.airline} ${flight.flightNumber} arrival`,
+          subtitle: `${flight.arrivalAirport || '-'} at ${formatTimeOnly(flight.arrivalTime)}`,
+          dateTime: flight.arrivalTime,
+        });
+      }
+    }
+    return items.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+  }, [dateOptions, flights]);
+
+  const groupedFlightItems = useMemo(() => {
+    const groups = new Map<string, ItineraryFlightItem[]>();
+    for (const day of dateOptions) {
+      groups.set(day, itineraryFlightItems.filter((item) => item.visitDate === day));
+    }
+    return groups;
+  }, [dateOptions, itineraryFlightItems]);
+
+  const defaultDayItemOrderByDay = useMemo(() => {
+    const order: Record<string, string[]> = {};
+    for (const day of dateOptions) {
+      const departures = groupedFlightItems.get(day)?.filter((item) => item.kind === 'departure').map((item) => item.id) ?? [];
+      const arrivals = groupedFlightItems.get(day)?.filter((item) => item.kind === 'arrival').map((item) => item.id) ?? [];
+      const placeIds = (groupedPlaces.get(day) ?? []).map((place) => place.id);
+      order[day] = [...departures, ...placeIds, ...arrivals];
+    }
+    return order;
+  }, [dateOptions, groupedFlightItems, groupedPlaces]);
+
+  const hotelsByDay = useMemo(() => {
+    const map = new Map<string, Hotel[]>();
+    for (const day of dateOptions) {
+      map.set(day, []);
+    }
+    for (const hotel of hotels) {
+      for (const day of dateOptions) {
+        if (day >= hotel.checkInDate && day <= hotel.checkOutDate) {
+          map.get(day)!.push(hotel);
+        }
+      }
+    }
+    return map;
+  }, [dateOptions, hotels]);
+
   const dayMeta = useMemo(() => {
     const formatter = new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -203,15 +341,35 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       return;
     }
 
-    const result = await listPlacesByTripId(client, tripId);
-    setPlaces(result.data);
-    setErrorMessage(result.error);
+    const [placesResult, flightsResult, hotelsResult] = await Promise.all([
+      listPlacesByTripId(client, tripId),
+      listFlightsByTripId(client, tripId),
+      listHotelsByTripId(client, tripId),
+    ]);
+    setPlaces(placesResult.data);
+    setFlights(flightsResult.data);
+    setHotels(hotelsResult.data);
+    setErrorMessage([placesResult.error, flightsResult.error, hotelsResult.error].filter(Boolean).join(' ') || null);
     setLoading(false);
   }, [tripId]);
 
   useEffect(() => {
     void loadPlaces();
   }, [loadPlaces]);
+
+  useEffect(() => {
+    setDayItemOrderByDay((prev) => {
+      const next: Record<string, string[]> = { ...prev };
+      for (const day of dateOptions) {
+        const defaultIds = defaultDayItemOrderByDay[day] ?? [];
+        const current = next[day] ?? [];
+        const kept = current.filter((id) => defaultIds.includes(id));
+        const appended = defaultIds.filter((id) => !kept.includes(id));
+        next[day] = [...kept, ...appended];
+      }
+      return next;
+    });
+  }, [dateOptions, defaultDayItemOrderByDay]);
 
   const persistReorder = async (updates: PlaceOrderUpdate[]) => {
     if (updates.length === 0) {
@@ -442,57 +600,53 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     const overId = String(over.id);
+    const overFlightItem = itineraryFlightItems.find((item) => item.id === overId);
     const overPlace = places.find((place) => place.id === overId);
     const sourceDate = activeItem.visitDate;
-    const targetDate = dateOptions.includes(overId) ? overId : overPlace?.visitDate;
+    const targetDate = dateOptions.includes(overId) ? overId : overPlace?.visitDate ?? overFlightItem?.visitDate;
 
     if (!targetDate) {
       return;
     }
 
-    const dayMap = new Map<string, Place[]>();
+    const nextDayItemOrderByDay: Record<string, string[]> = { ...dayItemOrderByDay };
     for (const day of dateOptions) {
-      dayMap.set(day, (groupedPlaces.get(day) ?? []).map((place) => ({ ...place })));
-    }
-
-    const sourceItems = dayMap.get(sourceDate) ?? [];
-    const oldIndex = sourceItems.findIndex((place) => place.id === activeItem.id);
-    if (oldIndex < 0) {
-      return;
-    }
-
-    if (sourceDate === targetDate) {
-      const targetItems = dayMap.get(targetDate) ?? [];
-      const overIndex = overPlace ? targetItems.findIndex((place) => place.id === overPlace.id) : targetItems.length - 1;
-      const normalizedTargetIndex = overId === targetDate ? targetItems.length - 1 : overIndex;
-      const moved = arrayMove(targetItems, oldIndex, Math.max(0, normalizedTargetIndex));
-      dayMap.set(targetDate, moved);
-    } else {
-      const targetItems = dayMap.get(targetDate) ?? [];
-      const withoutActive = sourceItems.filter((place) => place.id !== activeItem.id);
-      const movedItem = { ...activeItem, visitDate: targetDate };
-
-      const insertIndex = overPlace ? targetItems.findIndex((place) => place.id === overPlace.id) : targetItems.length;
-      const safeIndex = insertIndex < 0 ? targetItems.length : insertIndex;
-
-      const nextTarget = [...targetItems];
-      nextTarget.splice(safeIndex, 0, movedItem);
-
-      dayMap.set(sourceDate, withoutActive);
-      dayMap.set(targetDate, nextTarget);
-    }
-
-    const updates: PlaceOrderUpdate[] = [];
-    const nextPlaces: Place[] = [];
-
-    for (const day of dateOptions) {
-      const ordered = buildOrderedDay(day, dayMap.get(day) ?? []);
-      for (const place of ordered) {
-        updates.push({ id: place.id, visitDate: place.visitDate, sortOrder: place.sortOrder });
-        nextPlaces.push(place);
+      if (!nextDayItemOrderByDay[day]) {
+        nextDayItemOrderByDay[day] = [...(defaultDayItemOrderByDay[day] ?? [])];
       }
     }
 
+    nextDayItemOrderByDay[sourceDate] = nextDayItemOrderByDay[sourceDate].filter((id) => id !== activeId);
+    const targetList = [...(nextDayItemOrderByDay[targetDate] ?? [])];
+    const rawIndex = overId === targetDate ? targetList.length : targetList.indexOf(overId);
+    const insertIndex = rawIndex < 0 ? targetList.length : rawIndex;
+    targetList.splice(insertIndex, 0, activeId);
+    nextDayItemOrderByDay[targetDate] = targetList;
+    setDayItemOrderByDay(nextDayItemOrderByDay);
+
+    const updates: PlaceOrderUpdate[] = [];
+    const placeMap = new Map(places.map((place) => [place.id, { ...place }]));
+    const movedPlace = placeMap.get(activeId);
+    if (!movedPlace) {
+      return;
+    }
+    movedPlace.visitDate = targetDate;
+
+    for (const day of dateOptions) {
+      const orderedIds = nextDayItemOrderByDay[day] ?? [];
+      let sortOrder = 1;
+      for (const id of orderedIds) {
+        const place = placeMap.get(id);
+        if (!place || place.visitDate !== day) {
+          continue;
+        }
+        place.sortOrder = sortOrder;
+        updates.push({ id: place.id, visitDate: place.visitDate, sortOrder });
+        sortOrder += 1;
+      }
+    }
+
+    const nextPlaces = Array.from(placeMap.values());
     setPlaces(nextPlaces);
     setSaving(true);
     const success = await persistReorder(updates);
@@ -518,11 +672,13 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <Grid container spacing={1.5}>
-          {dateOptions.map((date) => (
+          {dateOptions.map((date, index) => (
             <Grid key={date} size={{ xs: 12 }}>
               <DaySection
                 date={date}
                 places={groupedPlaces.get(date) ?? []}
+                flights={groupedFlightItems.get(date) ?? []}
+                orderedItemIds={dayItemOrderByDay[date] ?? defaultDayItemOrderByDay[date] ?? []}
                 saving={saving}
                 canEdit={canEdit}
                 onOpenAdd={(selectedDate) => {
@@ -536,6 +692,13 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 onEdit={(place) => setPreviewPlace(place)}
                 onDelete={(place) => setDeletingPlace(place)}
               />
+              {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
+                <Stack direction="row" justifyContent="center" flexWrap="wrap" gap={0.75} mt={1.25} px={0.5}>
+                  {hotelsByDay.get(date)!.map((hotel) => (
+                    <Chip key={`${date}:${hotel.id}`} label={`Hotel: ${hotel.name}`} size="small" variant="outlined" />
+                  ))}
+                </Stack>
+              )}
             </Grid>
           ))}
         </Grid>
