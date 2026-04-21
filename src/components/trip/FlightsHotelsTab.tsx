@@ -79,10 +79,6 @@ function formatAirportCode(value: string): string {
   return code || name || trimmed;
 }
 
-function formatFlightLine(place: string, dateTime: string): string {
-  return `${formatAirportCode(place)} · ${formatMonthDayTime(dateTime)}`;
-}
-
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function formatMonthDayTime(value: string): string {
