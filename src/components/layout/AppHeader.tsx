@@ -170,11 +170,7 @@ export function AppHeader() {
             </Typography>
           </Box>
 
-          {userId ? (
-            <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 220 }}>
-              {userEmail}
-            </Typography>
-          ) : showHeaderLogin ? (
+          {!userId && showHeaderLogin ? (
             <Button href="/login" startIcon={<LoginIcon />} size="small">
               Login
             </Button>

@@ -33,6 +33,13 @@ const theme = createTheme({
         },
       },
     },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          fontWeight: 700,
+        },
+      },
+    },
   },
 });
 

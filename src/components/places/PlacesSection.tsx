@@ -589,7 +589,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitAdd}>
-          <DialogTitle>Add place</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Add place</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>
               <TextField
@@ -641,7 +641,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitEdit}>
-          <DialogTitle>Edit place</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Edit place</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />

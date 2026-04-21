@@ -264,7 +264,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAdd}>
-          <DialogTitle>Add note</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Add note</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
@@ -288,7 +288,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
       <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveEdit}>
-          <DialogTitle>Edit note</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Edit note</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField

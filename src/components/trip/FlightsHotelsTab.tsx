@@ -497,15 +497,31 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
       <Dialog open={canEdit && addFlightOpen} onClose={() => setAddFlightOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAddFlight}>
-          <DialogTitle>Add flight</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Add flight</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={addFlight.airline} onChange={(e) => setAddFlight((prev) => ({ ...prev, airline: e.target.value }))} required />
               <TextField label="Flight number" value={addFlight.flightNumber} onChange={(e) => setAddFlight((prev) => ({ ...prev, flightNumber: e.target.value }))} required />
               <TextField label="Departure airport" value={addFlight.departureAirport} onChange={(e) => setAddFlight((prev) => ({ ...prev, departureAirport: e.target.value }))} />
               <TextField label="Arrival airport" value={addFlight.arrivalAirport} onChange={(e) => setAddFlight((prev) => ({ ...prev, arrivalAirport: e.target.value }))} />
-              <TextField type="datetime-local" label="Departure time" value={addFlight.departureTime} onChange={(e) => setAddFlight((prev) => ({ ...prev, departureTime: e.target.value }))} required slotProps={{ inputLabel: { shrink: true } }} />
-              <TextField type="datetime-local" label="Arrival time" value={addFlight.arrivalTime} onChange={(e) => setAddFlight((prev) => ({ ...prev, arrivalTime: e.target.value }))} required slotProps={{ inputLabel: { shrink: true } }} />
+              <TextField
+                type="datetime-local"
+                label="Departure time (local)"
+                value={addFlight.departureTime}
+                onChange={(e) => setAddFlight((prev) => ({ ...prev, departureTime: e.target.value }))}
+                required
+                helperText="Local time at departure location"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                type="datetime-local"
+                label="Arrival time (local)"
+                value={addFlight.arrivalTime}
+                onChange={(e) => setAddFlight((prev) => ({ ...prev, arrivalTime: e.target.value }))}
+                required
+                helperText="Local time at arrival location"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
               <TextField label="Memo" value={addFlight.memo} onChange={(e) => setAddFlight((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
@@ -518,15 +534,31 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
       <Dialog open={canEdit && Boolean(editingFlight)} onClose={() => setEditingFlight(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveFlight}>
-          <DialogTitle>Edit flight</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Edit flight</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={editingFlight?.airline ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, airline: e.target.value } : prev))} required />
               <TextField label="Flight number" value={editingFlight?.flightNumber ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, flightNumber: e.target.value } : prev))} required />
               <TextField label="Departure airport" value={editingFlight?.departureAirport ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, departureAirport: e.target.value } : prev))} />
               <TextField label="Arrival airport" value={editingFlight?.arrivalAirport ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, arrivalAirport: e.target.value } : prev))} />
-              <TextField type="datetime-local" label="Departure time" value={editingFlight?.departureTime ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, departureTime: e.target.value } : prev))} required slotProps={{ inputLabel: { shrink: true } }} />
-              <TextField type="datetime-local" label="Arrival time" value={editingFlight?.arrivalTime ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: e.target.value } : prev))} required slotProps={{ inputLabel: { shrink: true } }} />
+              <TextField
+                type="datetime-local"
+                label="Departure time (local)"
+                value={editingFlight?.departureTime ?? ''}
+                onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, departureTime: e.target.value } : prev))}
+                required
+                helperText="Local time at departure location"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                type="datetime-local"
+                label="Arrival time (local)"
+                value={editingFlight?.arrivalTime ?? ''}
+                onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: e.target.value } : prev))}
+                required
+                helperText="Local time at arrival location"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
               <TextField label="Memo" value={editingFlight?.memo ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
@@ -550,7 +582,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
       <Dialog open={canEdit && addHotelOpen} onClose={() => setAddHotelOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAddHotel}>
-          <DialogTitle>Add hotel</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Add hotel</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={addHotel.name} onChange={(e) => setAddHotel((prev) => ({ ...prev, name: e.target.value }))} required />
@@ -569,7 +601,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
       <Dialog open={canEdit && Boolean(editingHotel)} onClose={() => setEditingHotel(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveHotel}>
-          <DialogTitle>Edit hotel</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700 }}>Edit hotel</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
