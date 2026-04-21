@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { AppProviders } from '@/components/providers/AppProviders';
 import './globals.css';
@@ -6,6 +6,14 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Travel Planner',
   description: 'Travel Planner built with Next.js App Router and MUI',
+  themeColor: '#ffffff',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
