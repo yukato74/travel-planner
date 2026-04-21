@@ -69,11 +69,6 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false, canEdit =
           <Typography variant="body1" fontWeight={600}>
             {place.name}
           </Typography>
-          {place.address && (
-            <Typography variant="body2" color="text.secondary">
-              {place.address}
-            </Typography>
-          )}
         </Box>
 
         <Stack direction="row" spacing={0.5} alignItems="center">

@@ -61,6 +61,10 @@ function formatTimeOnly(value: string): string {
   return timePart ? timePart.slice(0, 5) : value;
 }
 
+function isHttpUrl(value: string): boolean {
+  return value.startsWith('http://') || value.startsWith('https://');
+}
+
 function isOvernightDeparture(item?: ItineraryFlightItem): boolean {
   return Boolean(item && item.kind === 'departure' && item.counterpartDate > item.visitDate);
 }
@@ -942,7 +946,22 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             <Typography variant="body2" color="text.secondary">
               Visit date: {previewPlace?.visitDate}
             </Typography>
-            {previewPlace?.address && <Typography variant="body2">{previewPlace.address}</Typography>}
+            {previewPlace?.address && (
+              isHttpUrl(previewPlace.address) ? (
+                <Typography
+                  variant="body2"
+                  component="a"
+                  href={previewPlace.address}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  sx={{ textDecoration: 'underline' }}
+                >
+                  {previewPlace.address}
+                </Typography>
+              ) : (
+                <Typography variant="body2">{previewPlace.address}</Typography>
+              )
+            )}
             {previewPlace?.memo && (
               <>
                 <Divider />
