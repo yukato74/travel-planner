@@ -16,16 +16,17 @@ type PlaceItemProps = {
   onEdit: (place: Place) => void;
   onDelete: (place: Place) => void;
   disabled?: boolean;
+  canEdit?: boolean;
 };
 
-export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceItemProps) {
+export function PlaceItem({ place, onEdit, onDelete, disabled = false, canEdit = true }: PlaceItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: place.id,
     data: {
       type: 'place',
       visitDate: place.visitDate,
     },
-    disabled,
+    disabled: disabled || !canEdit,
   });
 
   return (
@@ -50,16 +51,16 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
         cursor: disabled ? 'default' : 'pointer',
       }}
     >
-      <Stack direction="row" spacing={1} width="100%" alignItems="flex-start">
+      <Stack direction="row" spacing={1} width="100%" alignItems="center">
         <IconButton
           size="small"
           edge="start"
           aria-label="Drag handle"
           {...attributes}
           {...listeners}
-          disabled={disabled}
+          disabled={disabled || !canEdit}
           onClick={(event) => event.stopPropagation()}
-          sx={{ mt: 0.2, touchAction: 'none' }}
+          sx={{ touchAction: 'none' }}
         >
           <DragIndicatorIcon fontSize="small" />
         </IconButton>
@@ -73,7 +74,6 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
               {place.address}
             </Typography>
           )}
-          {place.memo && <Typography variant="body2" color="text.secondary">{place.memo}</Typography>}
         </Box>
 
         <Stack direction="row" spacing={0.5} alignItems="center">
@@ -84,7 +84,7 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false }: PlaceIt
               event.stopPropagation();
               onDelete(place);
             }}
-            disabled={disabled}
+            disabled={disabled || !canEdit}
           >
             <DeleteOutlineIcon fontSize="small" />
           </IconButton>

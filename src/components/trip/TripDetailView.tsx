@@ -253,6 +253,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const dateOptions = enumerateDateRange(trip.startDate, trip.endDate);
   const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
   const needsPasswordGate = needsPassword && !isOwner;
+  const canEdit = isOwner || (needsPassword && isUnlocked);
   const shareUrl = buildTripShareUrl(trip.id);
 
   return (
@@ -297,9 +298,9 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             </Tabs>
 
             <Stack sx={{ pb: 0.5 }}>
-              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={isOwner} />}
-              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={isOwner} />}
-              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={isOwner} />}
+              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />}
+              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={canEdit} />}
+              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
             </Stack>
           </Stack>
         )}

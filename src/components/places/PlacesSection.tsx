@@ -46,6 +46,8 @@ type PlacesSectionProps = {
 
 type DaySectionProps = {
   date: string;
+  dayLabel: string;
+  shortDate: string;
   places: Place[];
   saving: boolean;
   canEdit: boolean;
@@ -56,6 +58,8 @@ type DaySectionProps = {
 
 function DaySection({
   date,
+  dayLabel,
+  shortDate,
   places,
   saving,
   canEdit,
@@ -83,9 +87,14 @@ function DaySection({
     >
       <Stack spacing={1.25}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-          <Typography variant="subtitle2" fontWeight={700}>
-            {date}
-          </Typography>
+          <Stack direction="row" alignItems="baseline" spacing={1}>
+            <Typography variant="subtitle2" fontWeight={700} whiteSpace="nowrap">
+              {dayLabel}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" whiteSpace="nowrap">
+              {shortDate}
+            </Typography>
+          </Stack>
           <Button size="small" startIcon={<AddIcon />} onClick={() => onOpenAdd(date)} disabled={saving || !canEdit}>
             Add place
           </Button>
@@ -101,7 +110,7 @@ function DaySection({
               </Typography>
             ) : (
               places.map((place) => (
-                <PlaceItem key={place.id} place={place} onEdit={onEdit} onDelete={onDelete} disabled={saving || !canEdit} />
+                <PlaceItem key={place.id} place={place} onEdit={onEdit} onDelete={onDelete} disabled={saving} canEdit={canEdit} />
               ))
             )}
           </List>
@@ -123,6 +132,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [addMemo, setAddMemo] = useState('');
 
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const [editName, setEditName] = useState('');
   const [editAddress, setEditAddress] = useState('');
   const [editMemo, setEditMemo] = useState('');
@@ -163,6 +173,24 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     return groups;
   }, [dateOptions, places]);
+
+  const dayMeta = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    return dateOptions.map((date, index) => {
+      const [year, month, day] = date.split('-').map(Number);
+      const shortDate = formatter.format(new Date(Date.UTC(year, month - 1, day)));
+      return {
+        date,
+        dayLabel: `Day ${index + 1}`,
+        shortDate,
+      };
+    });
+  }, [dateOptions]);
 
   const loadPlaces = useCallback(async () => {
     setLoading(true);
@@ -485,7 +513,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
   return (
     <Stack spacing={2}>
-      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -503,7 +531,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   setAddAddress('');
                   setAddMemo('');
                 }}
-                onEdit={openEditDialog}
+                dayLabel={dayMeta.find((item) => item.date === date)?.dayLabel ?? date}
+                shortDate={dayMeta.find((item) => item.date === date)?.shortDate ?? date}
+                onEdit={(place) => setPreviewPlace(place)}
                 onDelete={(place) => setDeletingPlace(place)}
               />
             </Grid>
@@ -520,6 +550,42 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <Dialog open={Boolean(previewPlace)} onClose={() => setPreviewPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle>{previewPlace?.name ?? ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              Visit date: {previewPlace?.visitDate}
+            </Typography>
+            {previewPlace?.address && <Typography variant="body2">{previewPlace.address}</Typography>}
+            {previewPlace?.memo && (
+              <>
+                <Divider />
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {previewPlace.memo}
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewPlace(null)} color="inherit">
+            Close
+          </Button>
+          {canEdit && previewPlace && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                openEditDialog(previewPlace);
+                setPreviewPlace(null);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitAdd}>

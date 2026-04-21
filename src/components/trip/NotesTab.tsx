@@ -2,6 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -10,6 +11,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -37,6 +39,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   const [content, setContent] = useState('');
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [previewNote, setPreviewNote] = useState<Note | null>(null);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
 
   const theme = useTheme();
@@ -171,7 +174,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   return (
     <Stack spacing={1.5}>
-      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>
@@ -203,31 +206,26 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                   key={note.id}
                   variant="outlined"
                   onClick={() => {
-                    if (canEdit) {
-                      setEditingNote(note);
-                    }
+                    setPreviewNote(note);
                   }}
-                  sx={{ p: 1.25, cursor: canEdit ? 'pointer' : 'default' }}
+                  sx={{ p: 1.25, cursor: 'pointer' }}
                 >
                   <Stack spacing={0.5}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
                       <Typography fontWeight={700}>{note.title}</Typography>
                       {canEdit && (
-                        <Button
+                        <IconButton
                           size="small"
-                          color="error"
+                          aria-label="Delete"
                           onClick={(event) => {
                             event.stopPropagation();
                             setDeletingNote(note);
                           }}
                         >
-                          Delete
-                        </Button>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
                       )}
                     </Stack>
-                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {note.content}
-                    </Typography>
                   </Stack>
                 </Paper>
               ))}
@@ -235,6 +233,34 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
           )}
         </Stack>
       </Paper>
+
+      <Dialog open={Boolean(previewNote)} onClose={() => setPreviewNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle>{previewNote?.title ?? ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Divider />
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+              {previewNote?.content}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewNote(null)} color="inherit">
+            Close
+          </Button>
+          {canEdit && previewNote && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                setEditingNote(previewNote);
+                setPreviewNote(null);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAdd}>

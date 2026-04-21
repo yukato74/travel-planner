@@ -19,6 +19,21 @@ const theme = createTheme({
   shape: {
     borderRadius: 10,
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        containedPrimary: {
+          color: '#fff',
+          '&:hover': {
+            backgroundColor: '#d75445',
+          },
+          '&:active': {
+            backgroundColor: '#c54b3d',
+          },
+        },
+      },
+    },
+  },
 });
 
 export function AppProviders({ children }: { children: ReactNode }) {

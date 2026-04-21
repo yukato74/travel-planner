@@ -156,10 +156,10 @@ export function AppHeader() {
         sx={{
           borderBottom: '1px solid',
           borderColor: alpha(theme.palette.primary.main, 0.24),
-          bgcolor: alpha(theme.palette.primary.main, 0.08),
+          bgcolor: '#fff4ef',
         }}
       >
-        <Toolbar sx={{ px: { xs: 1, sm: 2 } }}>
+        <Toolbar sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <IconButton aria-label="Open menu" edge="start" onClick={() => setDrawerOpen(true)}>
             <MenuIcon />
           </IconButton>

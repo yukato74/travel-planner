@@ -2,6 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -10,6 +11,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -57,6 +59,8 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
   const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
+  const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
+  const [previewHotel, setPreviewHotel] = useState<Hotel | null>(null);
   const [deletingFlight, setDeletingFlight] = useState<Flight | null>(null);
   const [deletingHotel, setDeletingHotel] = useState<Hotel | null>(null);
 
@@ -298,7 +302,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
   return (
     <Stack spacing={1.5}>
-      {!canEdit && <Alert severity="info">Read-only mode. Log in as the owner to edit.</Alert>}
+      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Typography variant="subtitle1" fontWeight={700} color="text.secondary">
@@ -328,26 +332,24 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                   key={flight.id}
                   variant="outlined"
                   onClick={() => {
-                    if (canEdit) {
-                      setEditingFlight(flight);
-                    }
+                    setPreviewFlight(flight);
                   }}
-                  sx={{ p: 1.25, cursor: canEdit ? 'pointer' : 'default' }}
+                  sx={{ p: 1.25, cursor: 'pointer' }}
                 >
                   <Stack spacing={0.6}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
                       <Typography fontWeight={700}>{flight.airline} {flight.flightNumber}</Typography>
                       {canEdit && (
-                        <Button
+                        <IconButton
                           size="small"
-                          color="error"
+                          aria-label="Delete"
                           onClick={(event) => {
                             event.stopPropagation();
                             setDeletingFlight(flight);
                           }}
                         >
-                          Delete
-                        </Button>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
                       )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
@@ -356,7 +358,6 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                     <Typography variant="body2" color="text.secondary">
                       {flight.departureTime} - {flight.arrivalTime}
                     </Typography>
-                    {flight.memo && <Typography variant="body2">{flight.memo}</Typography>}
                   </Stack>
                 </Paper>
               ))}
@@ -388,33 +389,30 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                   key={hotel.id}
                   variant="outlined"
                   onClick={() => {
-                    if (canEdit) {
-                      setEditingHotel(hotel);
-                    }
+                    setPreviewHotel(hotel);
                   }}
-                  sx={{ p: 1.25, cursor: canEdit ? 'pointer' : 'default' }}
+                  sx={{ p: 1.25, cursor: 'pointer' }}
                 >
                   <Stack spacing={0.6}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
                       <Typography fontWeight={700}>{hotel.name}</Typography>
                       {canEdit && (
-                        <Button
+                        <IconButton
                           size="small"
-                          color="error"
+                          aria-label="Delete"
                           onClick={(event) => {
                             event.stopPropagation();
                             setDeletingHotel(hotel);
                           }}
                         >
-                          Delete
-                        </Button>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
                       )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
                       {hotel.checkInDate} - {hotel.checkOutDate}
                     </Typography>
                     {hotel.address && <Typography variant="body2" color="text.secondary">{hotel.address}</Typography>}
-                    {hotel.memo && <Typography variant="body2">{hotel.memo}</Typography>}
                   </Stack>
                 </Paper>
               ))}
@@ -422,6 +420,80 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
           )}
         </Stack>
       </Paper>
+
+      <Dialog open={Boolean(previewFlight)} onClose={() => setPreviewFlight(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle>{previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              {previewFlight?.departureAirport || '-'} {'→'} {previewFlight?.arrivalAirport || '-'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {previewFlight?.departureTime} - {previewFlight?.arrivalTime}
+            </Typography>
+            {previewFlight?.memo && (
+              <>
+                <Divider />
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {previewFlight.memo}
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewFlight(null)} color="inherit">
+            Close
+          </Button>
+          {canEdit && previewFlight && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                setEditingFlight(previewFlight);
+                setPreviewFlight(null);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(previewHotel)} onClose={() => setPreviewHotel(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+        <DialogTitle>{previewHotel?.name ?? ''}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1} mt={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
+            </Typography>
+            {previewHotel?.address && <Typography variant="body2">{previewHotel.address}</Typography>}
+            {previewHotel?.memo && (
+              <>
+                <Divider />
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {previewHotel.memo}
+                </Typography>
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewHotel(null)} color="inherit">
+            Close
+          </Button>
+          {canEdit && previewHotel && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                setEditingHotel(previewHotel);
+                setPreviewHotel(null);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={canEdit && addFlightOpen} onClose={() => setAddFlightOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAddFlight}>
