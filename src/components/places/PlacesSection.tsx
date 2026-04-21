@@ -409,7 +409,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
     for (const hotel of hotels) {
       for (const day of dateOptions) {
-        if (day >= hotel.checkInDate && day <= hotel.checkOutDate) {
+        if (day >= hotel.checkInDate && day < hotel.checkOutDate) {
           map.get(day)!.push(hotel);
         }
       }
