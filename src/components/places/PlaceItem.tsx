@@ -40,7 +40,7 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false, canEdit =
       }}
       sx={{
         p: 1,
-        mb: 1,
+        mb: 0,
         borderRadius: 1,
         border: '1px solid',
         borderColor: 'divider',

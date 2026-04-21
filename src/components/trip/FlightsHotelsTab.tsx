@@ -43,6 +43,20 @@ function formatMonthDayTime(value: string): string {
   return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
 }
 
+function getDayDiff(start: string, end: string): number {
+  const startDate = start.slice(0, 10);
+  const endDate = end.slice(0, 10);
+  if (!startDate || !endDate) {
+    return 0;
+  }
+  const startMs = Date.parse(`${startDate}T00:00:00Z`);
+  const endMs = Date.parse(`${endDate}T00:00:00Z`);
+  if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
+    return 0;
+  }
+  return Math.max(0, Math.round((endMs - startMs) / (24 * 60 * 60 * 1000)));
+}
+
 export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -80,6 +94,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -341,7 +356,9 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Typography variant="body2" color="text.secondary">No flights yet.</Typography>
           ) : (
             <Stack spacing={1}>
-              {flights.map((flight) => (
+              {flights.map((flight) => {
+                const dayDiff = getDayDiff(flight.departureTime, flight.arrivalTime);
+                return (
                 <Paper
                   key={flight.id}
                   variant="outlined"
@@ -372,9 +389,15 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                     <Typography variant="body2" color="text.secondary">
                       {formatMonthDayTime(flight.departureTime)} - {formatMonthDayTime(flight.arrivalTime)}
                     </Typography>
+                    {dayDiff > 0 && (
+                      <Typography variant="caption" color="text.secondary">
+                        Arrives +{dayDiff} day{dayDiff > 1 ? 's' : ''}
+                      </Typography>
+                    )}
                   </Stack>
                 </Paper>
-              ))}
+                );
+              })}
             </Stack>
           )}
         </Stack>
@@ -438,6 +461,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
       <Dialog open={Boolean(previewFlight)} onClose={() => setPreviewFlight(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <DialogTitle>{previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}</DialogTitle>
         <DialogContent>
+          {previewFlight && (
           <Stack spacing={1} mt={0.5}>
             <Typography variant="body2" color="text.secondary">
               {previewFlight?.departureAirport || '-'} {'→'} {previewFlight?.arrivalAirport || '-'}
@@ -445,6 +469,11 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Typography variant="body2" color="text.secondary">
               {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
             </Typography>
+            {previewFlightDayDiff > 0 && (
+              <Typography variant="caption" color="text.secondary">
+                Overnight / multi-day flight (+{previewFlightDayDiff} day{previewFlightDayDiff > 1 ? 's' : ''})
+              </Typography>
+            )}
             {previewFlight?.memo && (
               <>
                 <Divider />
@@ -454,6 +483,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
               </>
             )}
           </Stack>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPreviewFlight(null)} color="inherit">

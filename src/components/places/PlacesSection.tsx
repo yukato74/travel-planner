@@ -45,15 +45,43 @@ type ItineraryFlightItem = {
   id: string;
   flightId: string;
   visitDate: string;
+  counterpartDate: string;
   kind: 'departure' | 'arrival';
   title: string;
   subtitle: string;
   dateTime: string;
+  isOvernight: boolean;
 };
 
 function formatTimeOnly(value: string): string {
   const timePart = value.split('T')[1];
   return timePart ? timePart.slice(0, 5) : value;
+}
+
+function isOvernightDeparture(item?: ItineraryFlightItem): boolean {
+  return Boolean(item && item.kind === 'departure' && item.counterpartDate > item.visitDate);
+}
+
+function isOvernightArrival(item?: ItineraryFlightItem): boolean {
+  return Boolean(item && item.kind === 'arrival' && item.counterpartDate < item.visitDate);
+}
+
+function isBlockedBoundary(ids: string[], index: number, flightItemById: Map<string, ItineraryFlightItem>): boolean {
+  if (ids.length === 0) {
+    return false;
+  }
+  if (index <= 0) {
+    return isOvernightArrival(flightItemById.get(ids[0]));
+  }
+  if (index >= ids.length) {
+    return isOvernightDeparture(flightItemById.get(ids[ids.length - 1]));
+  }
+  const before = flightItemById.get(ids[index - 1]);
+  const after = flightItemById.get(ids[index]);
+  if (before?.kind === 'departure' && after?.kind === 'arrival' && before.flightId === after.flightId) {
+    return true;
+  }
+  return false;
 }
 
 function normalizeFlightPairAdjacency(ids: string[], flightItemById: Map<string, ItineraryFlightItem>): string[] {
@@ -80,17 +108,19 @@ function normalizeFlightPairAdjacency(ids: string[], flightItemById: Map<string,
 }
 
 function adjustInsertIndexAwayFromFlightGap(ids: string[], index: number, flightItemById: Map<string, ItineraryFlightItem>): number {
-  let adjusted = index;
-  while (adjusted > 0 && adjusted < ids.length) {
-    const before = flightItemById.get(ids[adjusted - 1]);
-    const after = flightItemById.get(ids[adjusted]);
-    if (before?.kind === 'departure' && after?.kind === 'arrival' && before.flightId === after.flightId) {
+  let adjusted = Math.max(0, Math.min(index, ids.length));
+  let safety = 0;
+  while (safety < ids.length + 2 && isBlockedBoundary(ids, adjusted, flightItemById)) {
+    if (adjusted <= 0) {
       adjusted += 1;
-      continue;
+    } else if (adjusted >= ids.length) {
+      adjusted -= 1;
+    } else {
+      adjusted += 1;
     }
-    break;
+    safety += 1;
   }
-  return adjusted;
+  return Math.max(0, Math.min(adjusted, ids.length));
 }
 
 type PlacesSectionProps = {
@@ -115,26 +145,55 @@ type DaySectionProps = {
 
 function FlightItem({
   item,
-  connectedToPrev,
   connectedToNext,
+  connectedToPrevDay,
+  connectedToNextDay,
 }: {
   item: ItineraryFlightItem;
-  connectedToPrev?: boolean;
   connectedToNext?: boolean;
+  connectedToPrevDay?: boolean;
+  connectedToNextDay?: boolean;
 }) {
+  const showTopConnector = Boolean(connectedToPrevDay);
+  const showBottomConnector = Boolean(connectedToNextDay || connectedToNext);
   return (
     <Paper
       variant="outlined"
       sx={{
         p: 1,
-        mb: 0.25,
+        mb: 0,
+        position: 'relative',
         borderRadius: 1,
-        borderColor: connectedToPrev || connectedToNext ? 'primary.light' : 'divider',
-        bgcolor: connectedToPrev || connectedToNext ? 'rgba(255, 127, 80, 0.08)' : 'background.paper',
-        borderTopLeftRadius: connectedToPrev ? 0.5 : 1,
-        borderTopRightRadius: connectedToPrev ? 0.5 : 1,
-        borderBottomLeftRadius: connectedToNext ? 0.5 : 1,
-        borderBottomRightRadius: connectedToNext ? 0.5 : 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        borderTopLeftRadius: showTopConnector ? 0.5 : 1,
+        borderTopRightRadius: showTopConnector ? 0.5 : 1,
+        borderBottomLeftRadius: showBottomConnector ? 0.5 : 1,
+        borderBottomRightRadius: showBottomConnector ? 0.5 : 1,
+        '&::before': showTopConnector
+          ? {
+              content: '""',
+              position: 'absolute',
+              left: 12,
+              top: -10,
+              width: 2,
+              height: 10,
+              bgcolor: 'primary.main',
+              borderRadius: 2,
+            }
+          : undefined,
+        '&::after': showBottomConnector
+          ? {
+              content: '""',
+              position: 'absolute',
+              left: 12,
+              bottom: -10,
+              width: 2,
+              height: 10,
+              bgcolor: 'primary.main',
+              borderRadius: 2,
+            }
+          : undefined,
       }}
     >
       <Stack spacing={0.25}>
@@ -166,6 +225,17 @@ function InsertDropZone({ id }: { id: string }) {
   );
 }
 
+function NonDroppableGap() {
+  return (
+    <Box
+      sx={{
+        height: 8,
+        my: 0.25,
+      }}
+    />
+  );
+}
+
 function DaySection({
   date,
   dayLabel,
@@ -186,6 +256,8 @@ function DaySection({
       visitDate: date,
     },
   });
+  const flightItemById = useMemo(() => new Map(flights.map((item) => [item.id, item])), [flights]);
+  const showStartInsert = !isBlockedBoundary(orderedItemIds, 0, flightItemById);
 
   return (
     <Paper
@@ -222,12 +294,12 @@ function DaySection({
               </Typography>
             ) : (
               <>
-                <InsertDropZone id={`insert:${date}:0`} />
+                {showStartInsert && <InsertDropZone id={`insert:${date}:0`} />}
                 {orderedItemIds.map((id, index) => {
-                  const prevId = orderedItemIds[index - 1];
                   const nextId = orderedItemIds[index + 1];
                   const place = places.find((item) => item.id === id);
                   if (place) {
+                    const showInsertAfter = !isBlockedBoundary(orderedItemIds, index + 1, flightItemById);
                     return (
                       <Box key={place.id}>
                         <PlaceItem
@@ -237,28 +309,30 @@ function DaySection({
                           disabled={saving}
                           canEdit={canEdit}
                         />
-                        <InsertDropZone id={`insert:${date}:${index + 1}`} />
+                        {showInsertAfter ? <InsertDropZone id={`insert:${date}:${index + 1}`} /> : <NonDroppableGap />}
                       </Box>
                     );
                   }
 
                   const flight = flights.find((item) => item.id === id);
                   if (flight) {
-                    const prevFlight = prevId ? flights.find((item) => item.id === prevId) : undefined;
                     const nextFlight = nextId ? flights.find((item) => item.id === nextId) : undefined;
-                    const connectedToPrev =
-                      prevFlight?.kind === 'departure' &&
-                      flight.kind === 'arrival' &&
-                      prevFlight.flightId === flight.flightId;
                     const connectedToNext =
                       flight.kind === 'departure' &&
                       nextFlight?.kind === 'arrival' &&
                       nextFlight.flightId === flight.flightId;
-                    const shouldShowInsertAfter = !connectedToNext;
+                    const connectedToPrevDay = isOvernightArrival(flight);
+                    const connectedToNextDay = isOvernightDeparture(flight);
+                    const shouldShowInsertAfter = !isBlockedBoundary(orderedItemIds, index + 1, flightItemById);
                     return (
                       <Box key={flight.id}>
-                        <FlightItem item={flight} connectedToPrev={connectedToPrev} connectedToNext={connectedToNext} />
-                        {shouldShowInsertAfter && <InsertDropZone id={`insert:${date}:${index + 1}`} />}
+                        <FlightItem
+                          item={flight}
+                          connectedToNext={connectedToNext}
+                          connectedToPrevDay={connectedToPrevDay}
+                          connectedToNextDay={connectedToNextDay}
+                        />
+                        {shouldShowInsertAfter ? <InsertDropZone id={`insert:${date}:${index + 1}`} /> : <NonDroppableGap />}
                       </Box>
                     );
                   }
@@ -338,15 +412,18 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     for (const flight of flights) {
       const departureDate = flight.departureTime.slice(0, 10);
       const arrivalDate = flight.arrivalTime.slice(0, 10);
+      const isOvernight = departureDate !== arrivalDate;
       if (daySet.has(departureDate)) {
         items.push({
           id: `flight:${flight.id}:departure`,
           flightId: flight.id,
           visitDate: departureDate,
+          counterpartDate: arrivalDate,
           kind: 'departure',
           title: `${flight.airline} ${flight.flightNumber} departure`,
           subtitle: `${flight.departureAirport || '-'} at ${formatTimeOnly(flight.departureTime)}`,
           dateTime: flight.departureTime,
+          isOvernight,
         });
       }
       if (daySet.has(arrivalDate)) {
@@ -354,10 +431,12 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
           id: `flight:${flight.id}:arrival`,
           flightId: flight.id,
           visitDate: arrivalDate,
+          counterpartDate: departureDate,
           kind: 'arrival',
           title: `${flight.airline} ${flight.flightNumber} arrival`,
           subtitle: `${flight.arrivalAirport || '-'} at ${formatTimeOnly(flight.arrivalTime)}`,
           dateTime: flight.arrivalTime,
+          isOvernight,
         });
       }
     }
@@ -376,10 +455,16 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const defaultDayItemOrderByDay = useMemo(() => {
     const order: Record<string, string[]> = {};
     for (const day of dateOptions) {
-      const departures = groupedFlightItems.get(day)?.filter((item) => item.kind === 'departure').map((item) => item.id) ?? [];
-      const arrivals = groupedFlightItems.get(day)?.filter((item) => item.kind === 'arrival').map((item) => item.id) ?? [];
+      const dayFlights = groupedFlightItems.get(day) ?? [];
+      const overnightArrivals = dayFlights
+        .filter((item) => item.kind === 'arrival' && item.counterpartDate < item.visitDate)
+        .map((item) => item.id);
+      const departures = dayFlights.filter((item) => item.kind === 'departure').map((item) => item.id);
+      const sameDayArrivals = dayFlights
+        .filter((item) => item.kind === 'arrival' && item.counterpartDate >= item.visitDate)
+        .map((item) => item.id);
       const placeIds = (groupedPlaces.get(day) ?? []).map((place) => place.id);
-      order[day] = [...departures, ...placeIds, ...arrivals];
+      order[day] = [...overnightArrivals, ...departures, ...placeIds, ...sameDayArrivals];
     }
     return order;
   }, [dateOptions, groupedFlightItems, groupedPlaces]);
