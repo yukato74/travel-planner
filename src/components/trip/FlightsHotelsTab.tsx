@@ -52,7 +52,7 @@ type AirportOption = {
 };
 
 const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
-  props: TransitionProps & { children: ReactElement<unknown, any> },
+  props: TransitionProps & { children: ReactElement },
   ref: Ref<unknown>,
 ) {
   return <Slide direction="left" ref={ref} {...props} />;
