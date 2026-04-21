@@ -68,24 +68,6 @@ function formatMonthDayTime(value: string): string {
   return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
 }
 
-function formatAirportName(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '-';
-  }
-  const nameAndCode = trimmed.split(' · ')[0]?.trim() ?? trimmed;
-  const match = nameAndCode.match(/^(.*?)\s*\(([A-Za-z0-9]{3,4})\)\s*$/);
-  if (match) {
-    const name = match[1]?.trim() ?? '';
-    const code = (match[2] ?? '').toUpperCase();
-    if (code && name) {
-      return `${code} · ${name}`;
-    }
-    return name || trimmed;
-  }
-  return nameAndCode;
-}
-
 function formatAirportCode(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
