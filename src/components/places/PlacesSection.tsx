@@ -930,7 +930,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       </DndContext>
 
       <Dialog open={Boolean(previewPlace)} onClose={closePreviewPlace} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
               <ArrowBackIosNewIcon fontSize="small" />
@@ -1040,7 +1040,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog open={canEdit && Boolean(editingPlace)} onClose={() => setEditingPlace(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitEdit}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Edit place</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit place</DialogTitle>
           <DialogContent>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />

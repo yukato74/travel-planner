@@ -270,7 +270,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       </Paper>
 
       <Dialog open={Boolean(previewNote)} onClose={closePreviewNote} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
               <ArrowBackIosNewIcon fontSize="small" />
@@ -329,7 +329,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
       <Dialog open={canEdit && Boolean(editingNote)} onClose={() => setEditingNote(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveEdit}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Edit note</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField

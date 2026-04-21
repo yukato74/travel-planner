@@ -803,7 +803,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       </Paper>
 
       <Dialog open={Boolean(previewFlight)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
               <ArrowBackIosNewIcon fontSize="small" />
@@ -854,7 +854,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       </Dialog>
 
       <Dialog open={Boolean(previewHotel)} onClose={closePreview} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle sx={{ pb: 1, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
               <ArrowBackIosNewIcon fontSize="small" />
@@ -969,7 +969,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullScreen={isMobile}
       >
         <Box component="form" onSubmit={handleSaveFlight}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Edit flight</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit flight</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={editingFlight?.airline ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, airline: e.target.value } : prev))} required />
@@ -1085,7 +1085,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
       <Dialog open={canEdit && Boolean(editingHotel)} onClose={() => setEditingHotel(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSaveHotel}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Edit hotel</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit hotel</DialogTitle>
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
