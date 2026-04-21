@@ -15,6 +15,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -22,6 +23,7 @@ import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { enumerateDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -105,6 +107,24 @@ function normalizeDateTimeLocal(value: string): string {
     return `${match[1]}T${match[2]}`;
   }
   return trimmed;
+}
+
+function splitDateTimeLocal(value: string): { date: string; time: string } {
+  const normalized = normalizeDateTimeLocal(value);
+  const [datePart = '', timePart = ''] = normalized.split('T');
+  return {
+    date: datePart,
+    time: timePart.slice(0, 5) || '00:00',
+  };
+}
+
+function combineDateTimeLocal(date: string, time: string): string {
+  const normalizedDate = date.trim();
+  if (!normalizedDate) {
+    return '';
+  }
+  const normalizedTime = /^\d{2}:\d{2}$/.test(time) ? time : '00:00';
+  return `${normalizedDate}T${normalizedTime}`;
 }
 
 function getDayDiff(start: string, end: string): number {
@@ -239,6 +259,66 @@ function AirportAutocompleteField({
   );
 }
 
+function DateTimePickerField({
+  label,
+  value,
+  onChange,
+  dateOptions,
+  helperText,
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (nextValue: string) => void;
+  dateOptions: string[];
+  helperText?: string;
+  required?: boolean;
+}) {
+  const { date, time } = splitDateTimeLocal(value);
+  const safeDate = dateOptions.includes(date) ? date : '';
+  const safeTime = /^\d{2}:\d{2}$/.test(time) ? time : '';
+
+  return (
+    <Stack spacing={0.75}>
+      <Typography variant="body2">{label}</Typography>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+        <TextField
+          select
+          label="Date"
+          value={safeDate}
+          onChange={(event) => onChange(combineDateTimeLocal(event.target.value, safeTime))}
+          required={required}
+          fullWidth
+          slotProps={{ inputLabel: { shrink: true } }}
+        >
+          <MenuItem value="" disabled>
+            Select date
+          </MenuItem>
+          {dateOptions.map((dateOption) => (
+            <MenuItem key={dateOption} value={dateOption}>
+              {dateOption}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          type="time"
+          label="Time"
+          value={safeTime}
+          onChange={(event) => onChange(combineDateTimeLocal(safeDate, event.target.value))}
+          required={required}
+          fullWidth
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+      </Stack>
+      {helperText ? (
+        <Typography variant="caption" color="text.secondary">
+          {helperText}
+        </Typography>
+      ) : null}
+    </Stack>
+  );
+}
+
 export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit = true }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -279,6 +359,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
+  const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
 
   const handleAddFlightDepartureChange = (value: string) => {
     setAddFlight((prev) => {
@@ -787,32 +868,24 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={addFlight.arrivalAirport}
                 onValueChange={(value) => setAddFlight((prev) => ({ ...prev, arrivalAirport: value }))}
               />
-              <TextField
-                type="datetime-local"
+              <DateTimePickerField
                 label="Departure time (local)"
                 value={addFlight.departureTime}
-                onChange={(e) => handleAddFlightDepartureChange(e.target.value)}
-                required
+                onChange={handleAddFlightDepartureChange}
+                dateOptions={flightDateOptions}
+                required={true}
                 helperText="Local time at departure location"
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
-                }}
               />
-              <TextField
-                type="datetime-local"
+              <DateTimePickerField
                 label="Arrival time (local)"
                 value={addFlight.arrivalTime}
-                onChange={(e) => {
+                onChange={(value) => {
                   setAddFlightArrivalTouched(true);
-                  setAddFlight((prev) => ({ ...prev, arrivalTime: e.target.value }));
+                  setAddFlight((prev) => ({ ...prev, arrivalTime: value }));
                 }}
-                required
+                dateOptions={flightDateOptions}
+                required={true}
                 helperText="Local time at arrival location"
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
-                }}
               />
               <TextField label="Memo" value={addFlight.memo} onChange={(e) => setAddFlight((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
@@ -858,32 +931,24 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={editingFlight?.arrivalAirport ?? ''}
                 onValueChange={(value) => setEditingFlight((prev) => (prev ? { ...prev, arrivalAirport: value } : prev))}
               />
-              <TextField
-                type="datetime-local"
+              <DateTimePickerField
                 label="Departure time (local)"
                 value={editingFlight?.departureTime ?? ''}
-                onChange={(e) => handleEditFlightDepartureChange(e.target.value)}
-                required
+                onChange={handleEditFlightDepartureChange}
+                dateOptions={flightDateOptions}
+                required={true}
                 helperText="Local time at departure location"
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
-                }}
               />
-              <TextField
-                type="datetime-local"
+              <DateTimePickerField
                 label="Arrival time (local)"
                 value={editingFlight?.arrivalTime ?? ''}
-                onChange={(e) => {
+                onChange={(value) => {
                   setEditFlightArrivalTouched(true);
-                  setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: e.target.value } : prev));
+                  setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: value } : prev));
                 }}
-                required
+                dateOptions={flightDateOptions}
+                required={true}
                 helperText="Local time at arrival location"
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
-                }}
               />
               <TextField label="Memo" value={editingFlight?.memo ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
@@ -922,21 +987,39 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Name" value={addHotel.name} onChange={(e) => setAddHotel((prev) => ({ ...prev, name: e.target.value }))} required />
               <TextField label="Address" value={addHotel.address} onChange={(e) => setAddHotel((prev) => ({ ...prev, address: e.target.value }))} />
               <TextField
-                type="date"
+                select
                 label="Check-in"
                 value={addHotel.checkInDate}
                 onChange={(e) => setAddHotel((prev) => ({ ...prev, checkInDate: e.target.value }))}
                 required
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
-              />
+                slotProps={{ inputLabel: { shrink: true } }}
+              >
+                <MenuItem value="" disabled>
+                  Select date
+                </MenuItem>
+                {flightDateOptions.map((dateOption) => (
+                  <MenuItem key={`add-checkin-${dateOption}`} value={dateOption}>
+                    {dateOption}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
-                type="date"
+                select
                 label="Check-out"
                 value={addHotel.checkOutDate}
                 onChange={(e) => setAddHotel((prev) => ({ ...prev, checkOutDate: e.target.value }))}
                 required
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
-              />
+                slotProps={{ inputLabel: { shrink: true } }}
+              >
+                <MenuItem value="" disabled>
+                  Select date
+                </MenuItem>
+                {flightDateOptions.map((dateOption) => (
+                  <MenuItem key={`add-checkout-${dateOption}`} value={dateOption}>
+                    {dateOption}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField label="Memo" value={addHotel.memo} onChange={(e) => setAddHotel((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
@@ -955,21 +1038,39 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
               <TextField label="Address" value={editingHotel?.address ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
               <TextField
-                type="date"
+                select
                 label="Check-in"
                 value={editingHotel?.checkInDate ?? ''}
                 onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkInDate: e.target.value } : prev))}
                 required
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
-              />
+                slotProps={{ inputLabel: { shrink: true } }}
+              >
+                <MenuItem value="" disabled>
+                  Select date
+                </MenuItem>
+                {flightDateOptions.map((dateOption) => (
+                  <MenuItem key={`edit-checkin-${dateOption}`} value={dateOption}>
+                    {dateOption}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
-                type="date"
+                select
                 label="Check-out"
                 value={editingHotel?.checkOutDate ?? ''}
                 onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkOutDate: e.target.value } : prev))}
                 required
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
-              />
+                slotProps={{ inputLabel: { shrink: true } }}
+              >
+                <MenuItem value="" disabled>
+                  Select date
+                </MenuItem>
+                {flightDateOptions.map((dateOption) => (
+                  <MenuItem key={`edit-checkout-${dateOption}`} value={dateOption}>
+                    {dateOption}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField label="Memo" value={editingHotel?.memo ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
