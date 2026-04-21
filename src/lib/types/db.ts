@@ -12,6 +12,7 @@ export type Database = {
           end_date: string;
           share_password: string;
           is_share_protected: boolean;
+          itinerary_order: Json;
           created_at: string;
         };
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           end_date: string;
           share_password: string;
           is_share_protected?: boolean;
+          itinerary_order?: Json;
           created_at?: string;
         };
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           end_date?: string;
           share_password?: string;
           is_share_protected?: boolean;
+          itinerary_order?: Json;
           created_at?: string;
         };
         Relationships: [];

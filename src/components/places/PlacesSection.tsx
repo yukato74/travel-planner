@@ -38,6 +38,7 @@ import { listFlightsByTripId } from '@/lib/flights/service';
 import { listHotelsByTripId } from '@/lib/hotels/service';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
+import { getTripItineraryOrder, updateTripItineraryOrder } from '@/lib/trips/service';
 import { Flight, Hotel, Place, PlaceOrderUpdate } from '@/lib/types/trip';
 
 type ItineraryFlightItem = {
@@ -53,6 +54,43 @@ type ItineraryFlightItem = {
 function formatTimeOnly(value: string): string {
   const timePart = value.split('T')[1];
   return timePart ? timePart.slice(0, 5) : value;
+}
+
+function normalizeFlightPairAdjacency(ids: string[], flightItemById: Map<string, ItineraryFlightItem>): string[] {
+  const next = [...ids];
+  for (let i = 0; i < next.length; i += 1) {
+    const dep = flightItemById.get(next[i]);
+    if (dep?.kind !== 'departure') {
+      continue;
+    }
+    const arrivalIndex = next.findIndex((id, idx) => {
+      if (idx <= i) {
+        return false;
+      }
+      const candidate = flightItemById.get(id);
+      return candidate?.kind === 'arrival' && candidate.flightId === dep.flightId;
+    });
+    if (arrivalIndex === -1 || arrivalIndex === i + 1) {
+      continue;
+    }
+    const [arrivalId] = next.splice(arrivalIndex, 1);
+    next.splice(i + 1, 0, arrivalId);
+  }
+  return next;
+}
+
+function adjustInsertIndexAwayFromFlightGap(ids: string[], index: number, flightItemById: Map<string, ItineraryFlightItem>): number {
+  let adjusted = index;
+  while (adjusted > 0 && adjusted < ids.length) {
+    const before = flightItemById.get(ids[adjusted - 1]);
+    const after = flightItemById.get(ids[adjusted]);
+    if (before?.kind === 'departure' && after?.kind === 'arrival' && before.flightId === after.flightId) {
+      adjusted += 1;
+      continue;
+    }
+    break;
+  }
+  return adjusted;
 }
 
 type PlacesSectionProps = {
@@ -75,14 +113,28 @@ type DaySectionProps = {
   onDelete: (place: Place) => void;
 };
 
-function FlightItem({ item }: { item: ItineraryFlightItem }) {
+function FlightItem({
+  item,
+  connectedToPrev,
+  connectedToNext,
+}: {
+  item: ItineraryFlightItem;
+  connectedToPrev?: boolean;
+  connectedToNext?: boolean;
+}) {
   return (
     <Paper
       variant="outlined"
       sx={{
         p: 1,
-        mb: 1,
+        mb: 0.25,
         borderRadius: 1,
+        borderColor: connectedToPrev || connectedToNext ? 'primary.light' : 'divider',
+        bgcolor: connectedToPrev || connectedToNext ? 'rgba(255, 127, 80, 0.08)' : 'background.paper',
+        borderTopLeftRadius: connectedToPrev ? 0.5 : 1,
+        borderTopRightRadius: connectedToPrev ? 0.5 : 1,
+        borderBottomLeftRadius: connectedToNext ? 0.5 : 1,
+        borderBottomRightRadius: connectedToNext ? 0.5 : 1,
       }}
     >
       <Stack spacing={0.25}>
@@ -172,6 +224,8 @@ function DaySection({
               <>
                 <InsertDropZone id={`insert:${date}:0`} />
                 {orderedItemIds.map((id, index) => {
+                  const prevId = orderedItemIds[index - 1];
+                  const nextId = orderedItemIds[index + 1];
                   const place = places.find((item) => item.id === id);
                   if (place) {
                     return (
@@ -190,10 +244,21 @@ function DaySection({
 
                   const flight = flights.find((item) => item.id === id);
                   if (flight) {
+                    const prevFlight = prevId ? flights.find((item) => item.id === prevId) : undefined;
+                    const nextFlight = nextId ? flights.find((item) => item.id === nextId) : undefined;
+                    const connectedToPrev =
+                      prevFlight?.kind === 'departure' &&
+                      flight.kind === 'arrival' &&
+                      prevFlight.flightId === flight.flightId;
+                    const connectedToNext =
+                      flight.kind === 'departure' &&
+                      nextFlight?.kind === 'arrival' &&
+                      nextFlight.flightId === flight.flightId;
+                    const shouldShowInsertAfter = !connectedToNext;
                     return (
                       <Box key={flight.id}>
-                        <FlightItem item={flight} />
-                        <InsertDropZone id={`insert:${date}:${index + 1}`} />
+                        <FlightItem item={flight} connectedToPrev={connectedToPrev} connectedToNext={connectedToNext} />
+                        {shouldShowInsertAfter && <InsertDropZone id={`insert:${date}:${index + 1}`} />}
                       </Box>
                     );
                   }
@@ -233,6 +298,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
   const [dayItemOrderByDay, setDayItemOrderByDay] = useState<Record<string, string[]>>({});
+  const [sharedOrderLoaded, setSharedOrderLoaded] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -305,6 +371,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
     return groups;
   }, [dateOptions, itineraryFlightItems]);
+  const flightItemById = useMemo(() => new Map(itineraryFlightItems.map((item) => [item.id, item])), [itineraryFlightItems]);
 
   const defaultDayItemOrderByDay = useMemo(() => {
     const order: Record<string, string[]> = {};
@@ -352,6 +419,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
   const loadPlaces = useCallback(async () => {
     setLoading(true);
+    setSharedOrderLoaded(false);
     setErrorMessage(null);
 
     const { client, error } = getSupabaseBrowserClient();
@@ -361,15 +429,18 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       return;
     }
 
-    const [placesResult, flightsResult, hotelsResult] = await Promise.all([
+    const [placesResult, flightsResult, hotelsResult, orderResult] = await Promise.all([
       listPlacesByTripId(client, tripId),
       listFlightsByTripId(client, tripId),
       listHotelsByTripId(client, tripId),
+      getTripItineraryOrder(client, tripId),
     ]);
     setPlaces(placesResult.data);
     setFlights(flightsResult.data);
     setHotels(hotelsResult.data);
-    setErrorMessage([placesResult.error, flightsResult.error, hotelsResult.error].filter(Boolean).join(' ') || null);
+    setDayItemOrderByDay(orderResult.data);
+    setSharedOrderLoaded(true);
+    setErrorMessage([placesResult.error, flightsResult.error, hotelsResult.error, orderResult.error].filter(Boolean).join(' ') || null);
     setLoading(false);
   }, [tripId]);
 
@@ -385,11 +456,29 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         const current = next[day] ?? [];
         const kept = current.filter((id) => defaultIds.includes(id));
         const appended = defaultIds.filter((id) => !kept.includes(id));
-        next[day] = [...kept, ...appended];
+        next[day] = normalizeFlightPairAdjacency([...kept, ...appended], flightItemById);
       }
       return next;
     });
-  }, [dateOptions, defaultDayItemOrderByDay]);
+  }, [dateOptions, defaultDayItemOrderByDay, flightItemById]);
+
+  useEffect(() => {
+    if (!sharedOrderLoaded) {
+      return;
+    }
+    const { client, error } = getSupabaseBrowserClient();
+    if (!client) {
+      if (error) {
+        setErrorMessage(error);
+      }
+      return;
+    }
+    void updateTripItineraryOrder(client, tripId, dayItemOrderByDay).then((result) => {
+      if (result.error) {
+        setErrorMessage(result.error);
+      }
+    });
+  }, [dayItemOrderByDay, sharedOrderLoaded, tripId]);
 
   const persistReorder = async (updates: PlaceOrderUpdate[]) => {
     if (updates.length === 0) {
@@ -650,8 +739,12 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         : targetList.indexOf(overId);
     if (Number.isNaN(insertIndex) || insertIndex < 0) insertIndex = targetList.length;
     if (insertIndex > targetList.length) insertIndex = targetList.length;
+    insertIndex = adjustInsertIndexAwayFromFlightGap(targetList, insertIndex, flightItemById);
     targetList.splice(insertIndex, 0, activeId);
-    nextDayItemOrderByDay[targetDate] = targetList;
+    nextDayItemOrderByDay[targetDate] = normalizeFlightPairAdjacency(targetList, flightItemById);
+    if (sourceDate !== targetDate) {
+      nextDayItemOrderByDay[sourceDate] = normalizeFlightPairAdjacency(nextDayItemOrderByDay[sourceDate] ?? [], flightItemById);
+    }
     setDayItemOrderByDay(nextDayItemOrderByDay);
 
     const updates: PlaceOrderUpdate[] = [];

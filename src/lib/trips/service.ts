@@ -23,6 +23,46 @@ export function buildTripShareUrl(id: string): string {
   return `${base}/trip/${id}`;
 }
 
+export type ItineraryOrderByDay = Record<string, string[]>;
+
+function parseItineraryOrder(value: unknown): ItineraryOrderByDay {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  const parsed: ItineraryOrderByDay = {};
+  for (const [day, ids] of entries) {
+    if (!Array.isArray(ids)) {
+      continue;
+    }
+    parsed[day] = ids.filter((id): id is string => typeof id === 'string');
+  }
+  return parsed;
+}
+
+export async function getTripItineraryOrder(
+  supabase: SupabaseDBClient,
+  tripId: string,
+): Promise<{ data: ItineraryOrderByDay; error: string | null }> {
+  const { data, error } = await supabase.from('trips').select('itinerary_order').eq('id', tripId).single();
+  if (error) {
+    return { data: {}, error: `Failed to fetch itinerary order: ${error.message}` };
+  }
+  return { data: parseItineraryOrder(data?.itinerary_order), error: null };
+}
+
+export async function updateTripItineraryOrder(
+  supabase: SupabaseDBClient,
+  tripId: string,
+  orderByDay: ItineraryOrderByDay,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('trips').update({ itinerary_order: orderByDay }).eq('id', tripId);
+  if (error) {
+    return { error: `Failed to save itinerary order: ${error.message}` };
+  }
+  return { error: null };
+}
+
 export async function listTrips(
   supabase: SupabaseDBClient,
   ownerUserId: string,

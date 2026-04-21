@@ -15,6 +15,9 @@ create table if not exists public.trips (
 alter table public.trips
   add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 
+alter table public.trips
+  add column if not exists itinerary_order jsonb not null default '{}'::jsonb;
+
 create table if not exists public.places (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references public.trips(id) on delete cascade,
