@@ -110,7 +110,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             My trips
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Only trips owned by your account are listed here.
+            Trips you own and shared trips you joined are listed here.
           </Typography>
         </Stack>
 

@@ -13,7 +13,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { FormEvent, useEffect, useState } from 'react';
-import { deleteTrip, updateTrip } from '@/lib/trips/service';
+import { deleteTrip, leaveTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { TripSummary } from '@/lib/types/trip';
 
@@ -22,12 +22,26 @@ type TripInfoDialogProps = {
   trip: TripSummary;
   shareUrl: string;
   showShareInfo?: boolean;
+  viewerUserId: string | null;
+  canDeleteTrip: boolean;
+  canLeaveTrip: boolean;
   onClose: () => void;
   onUpdated: (trip: TripSummary) => void;
-  onDeleted: (tripId: string) => void;
+  onRemoved: (tripId: string) => void;
 };
 
-export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, onClose, onUpdated, onDeleted }: TripInfoDialogProps) {
+export function TripInfoDialog({
+  open,
+  trip,
+  shareUrl,
+  showShareInfo = false,
+  viewerUserId,
+  canDeleteTrip,
+  canLeaveTrip,
+  onClose,
+  onUpdated,
+  onRemoved,
+}: TripInfoDialogProps) {
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -35,7 +49,7 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
   const [sharePassword, setSharePassword] = useState(trip.sharePassword);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmActionOpen, setConfirmActionOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -48,7 +62,7 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
     setIsShareProtected(trip.isShareProtected);
     setSharePassword(trip.sharePassword);
     setErrorMessage(null);
-    setConfirmDeleteOpen(false);
+    setConfirmActionOpen(false);
   }, [open, trip]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -100,6 +114,11 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
   };
 
   const handleDeleteTrip = async () => {
+    if (!viewerUserId) {
+      setErrorMessage('Failed to identify the current user.');
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
@@ -109,18 +128,47 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
     setSaving(true);
     setErrorMessage(null);
 
-    const result = await deleteTrip(client, trip.id);
+    const result = await deleteTrip(client, trip.id, viewerUserId);
     setSaving(false);
 
     if (result.error) {
       setErrorMessage(result.error);
-      setConfirmDeleteOpen(false);
+      setConfirmActionOpen(false);
       return;
     }
 
-    setConfirmDeleteOpen(false);
+    setConfirmActionOpen(false);
     onClose();
-    onDeleted(trip.id);
+    onRemoved(trip.id);
+  };
+
+  const handleLeaveTrip = async () => {
+    if (!viewerUserId) {
+      setErrorMessage('Failed to identify the current user.');
+      return;
+    }
+
+    const { client, error } = getSupabaseBrowserClient();
+    if (!client) {
+      setErrorMessage(error);
+      return;
+    }
+
+    setSaving(true);
+    setErrorMessage(null);
+
+    const result = await leaveTrip(client, trip.id, viewerUserId);
+    setSaving(false);
+
+    if (result.error) {
+      setErrorMessage(result.error);
+      setConfirmActionOpen(false);
+      return;
+    }
+
+    setConfirmActionOpen(false);
+    onClose();
+    onRemoved(trip.id);
   };
 
   return (
@@ -176,9 +224,9 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
           </Stack>
         </DialogContent>
         <DialogActions>
-          {showShareInfo && (
-            <Button color="error" onClick={() => setConfirmDeleteOpen(true)} disabled={saving} sx={{ mr: 'auto' }}>
-              Delete trip
+          {(canDeleteTrip || canLeaveTrip) && (
+            <Button color="error" onClick={() => setConfirmActionOpen(true)} disabled={saving} sx={{ mr: 'auto' }}>
+              {canDeleteTrip ? 'Delete trip' : 'Leave trip'}
             </Button>
           )}
           <Button onClick={onClose} color="inherit">
@@ -190,23 +238,35 @@ export function TripInfoDialog({ open, trip, shareUrl, showShareInfo = false, on
         </DialogActions>
       </Box>
 
-      <Dialog open={showShareInfo && confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Delete trip</DialogTitle>
+      <Dialog open={confirmActionOpen} onClose={() => setConfirmActionOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>{canDeleteTrip ? 'Delete trip' : 'Leave trip'}</DialogTitle>
         <DialogContent>
           <Stack spacing={1}>
-            <Typography variant="body2">Are you sure you want to delete this trip?</Typography>
-            <Typography variant="body2" color="text.secondary">
-              This will also remove related places, flights, hotels, and notes.
-            </Typography>
+            {canDeleteTrip ? (
+              <>
+                <Typography variant="body2">Are you sure you want to delete this trip?</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  This will also remove related places, flights, hotels, and notes.
+                </Typography>
+              </>
+            ) : (
+              <Typography variant="body2">Are you sure you want to leave this trip?</Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteOpen(false)} color="inherit" disabled={saving}>
+          <Button onClick={() => setConfirmActionOpen(false)} color="inherit" disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleDeleteTrip} color="error" variant="contained" disabled={saving}>
-            {saving ? 'Deleting...' : 'Delete'}
-          </Button>
+          {canDeleteTrip ? (
+            <Button onClick={handleDeleteTrip} color="error" variant="contained" disabled={saving}>
+              {saving ? 'Deleting...' : 'Delete'}
+            </Button>
+          ) : (
+            <Button onClick={handleLeaveTrip} color="error" variant="contained" disabled={saving}>
+              {saving ? 'Leaving...' : 'Leave'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Dialog>

@@ -206,6 +206,32 @@ export type Database = {
           },
         ];
       };
+      trip_members: {
+        Row: {
+          trip_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          trip_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          trip_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'trip_members_trip_id_fkey';
+            columns: ['trip_id'];
+            isOneToOne: false;
+            referencedRelation: 'trips';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

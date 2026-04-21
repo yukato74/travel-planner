@@ -64,17 +64,26 @@ create table if not exists public.notes (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.trip_members (
+  trip_id uuid not null references public.trips(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (trip_id, user_id)
+);
+
 create index if not exists idx_places_trip_visit_sort on public.places (trip_id, visit_date, sort_order);
 create index if not exists idx_trips_owner_user on public.trips (owner_user_id);
 create index if not exists idx_flights_trip_departure on public.flights (trip_id, departure_time);
 create index if not exists idx_hotels_trip_checkin on public.hotels (trip_id, check_in_date);
 create index if not exists idx_notes_trip_created on public.notes (trip_id, created_at);
+create index if not exists idx_trip_members_user on public.trip_members (user_id);
 
 alter table public.trips enable row level security;
 alter table public.places enable row level security;
 alter table public.flights enable row level security;
 alter table public.hotels enable row level security;
 alter table public.notes enable row level security;
+alter table public.trip_members enable row level security;
 
 drop policy if exists "public read trips" on public.trips;
 drop policy if exists "public insert trips" on public.trips;
@@ -83,7 +92,7 @@ drop policy if exists "public delete trips" on public.trips;
 create policy "public read trips" on public.trips for select using (true);
 create policy "public insert trips" on public.trips for insert with check (true);
 create policy "public update trips" on public.trips for update using (true) with check (true);
-create policy "public delete trips" on public.trips for delete using (true);
+create policy "public delete trips" on public.trips for delete using (auth.uid() = owner_user_id);
 
 drop policy if exists "public read places" on public.places;
 drop policy if exists "public insert places" on public.places;
@@ -120,3 +129,10 @@ create policy "public read notes" on public.notes for select using (true);
 create policy "public insert notes" on public.notes for insert with check (true);
 create policy "public update notes" on public.notes for update using (true) with check (true);
 create policy "public delete notes" on public.notes for delete using (true);
+
+drop policy if exists "public read trip_members" on public.trip_members;
+drop policy if exists "public insert trip_members" on public.trip_members;
+drop policy if exists "public delete trip_members" on public.trip_members;
+create policy "public read trip_members" on public.trip_members for select using (true);
+create policy "public insert trip_members" on public.trip_members for insert with check (true);
+create policy "public delete trip_members" on public.trip_members for delete using (true);

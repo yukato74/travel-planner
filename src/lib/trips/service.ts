@@ -65,18 +65,53 @@ export async function updateTripItineraryOrder(
 
 export async function listTrips(
   supabase: SupabaseDBClient,
-  ownerUserId: string,
+  userId: string,
 ): Promise<{ data: TripSummary[]; error: string | null }> {
-  const { data, error } = await supabase
+  const [ownerTripsResult, membershipResult] = await Promise.all([
+    supabase
+      .from('trips')
+      .select('*')
+      .eq('owner_user_id', userId)
+      .order('start_date', { ascending: true })
+      .order('created_at', { ascending: false }),
+    supabase.from('trip_members').select('trip_id').eq('user_id', userId),
+  ]);
+
+  if (ownerTripsResult.error) {
+    return { data: [], error: `Failed to fetch trips: ${ownerTripsResult.error.message}` };
+  }
+
+  if (membershipResult.error) {
+    return { data: [], error: `Failed to fetch shared trips: ${membershipResult.error.message}` };
+  }
+
+  const memberTripIds = Array.from(new Set((membershipResult.data ?? []).map((row: { trip_id: string }) => row.trip_id).filter(Boolean)));
+  if (memberTripIds.length === 0) {
+    return { data: ownerTripsResult.data.map(mapTrip), error: null };
+  }
+
+  const { data: invitedTrips, error: invitedTripsError } = await supabase
     .from('trips')
     .select('*')
-    .eq('owner_user_id', ownerUserId)
+    .in('id', memberTripIds)
     .order('start_date', { ascending: true })
     .order('created_at', { ascending: false });
 
-  if (error) {
-    return { data: [], error: `Failed to fetch trips: ${error.message}` };
+  if (invitedTripsError) {
+    return { data: [], error: `Failed to fetch shared trips: ${invitedTripsError.message}` };
   }
+
+  const merged = [...ownerTripsResult.data, ...invitedTrips];
+  const uniqueById = new Map<string, Database['public']['Tables']['trips']['Row']>();
+  for (const trip of merged) {
+    uniqueById.set(trip.id, trip);
+  }
+  const data = Array.from(uniqueById.values()).sort((a, b) => {
+    if (a.start_date === b.start_date) {
+      return b.created_at.localeCompare(a.created_at);
+    }
+    return a.start_date.localeCompare(b.start_date);
+  });
 
   return { data: data.map(mapTrip), error: null };
 }
@@ -148,11 +183,73 @@ export async function updateTrip(
 export async function deleteTrip(
   supabase: SupabaseDBClient,
   tripId: string,
+  userId: string,
 ): Promise<{ error: string | null }> {
+  const { data: trip, error: tripError } = await supabase.from('trips').select('owner_user_id').eq('id', tripId).single();
+  if (tripError) {
+    return { error: `Failed to check trip owner: ${tripError.message}` };
+  }
+  if (!trip || trip.owner_user_id !== userId) {
+    return { error: 'Only the trip owner can delete this trip.' };
+  }
+
   const { error } = await supabase.from('trips').delete().eq('id', tripId);
 
   if (error) {
     return { error: `Failed to delete trip: ${error.message}` };
+  }
+
+  return { error: null };
+}
+
+export async function addTripMember(
+  supabase: SupabaseDBClient,
+  tripId: string,
+  userId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('trip_members').upsert(
+    {
+      trip_id: tripId,
+      user_id: userId,
+    },
+    { onConflict: 'trip_id,user_id' },
+  );
+
+  if (error) {
+    return { error: `Failed to save shared trip: ${error.message}` };
+  }
+
+  return { error: null };
+}
+
+export async function isInvitedTripMember(
+  supabase: SupabaseDBClient,
+  tripId: string,
+  userId: string,
+): Promise<{ data: boolean; error: string | null }> {
+  const { data, error } = await supabase
+    .from('trip_members')
+    .select('trip_id')
+    .eq('trip_id', tripId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    return { data: false, error: `Failed to check trip membership: ${error.message}` };
+  }
+
+  return { data: Boolean(data), error: null };
+}
+
+export async function leaveTrip(
+  supabase: SupabaseDBClient,
+  tripId: string,
+  userId: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from('trip_members').delete().eq('trip_id', tripId).eq('user_id', userId);
+
+  if (error) {
+    return { error: `Failed to leave trip: ${error.message}` };
   }
 
   return { error: null };

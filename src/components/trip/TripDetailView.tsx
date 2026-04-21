@@ -21,7 +21,7 @@ import { TripInfoDialog } from '@/components/trip/TripInfoDialog';
 import { enumerateDateRange } from '@/lib/date';
 import { getTripAccessStorageKey, requiresSharePassword, verifySharePassword } from '@/lib/share/access';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
-import { buildTripShareUrl, getTripById, listTrips } from '@/lib/trips/service';
+import { addTripMember, buildTripShareUrl, getTripById, isInvitedTripMember, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
 
 type TripDetailViewProps = {
@@ -40,6 +40,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const [unlockErrorMessage, setUnlockErrorMessage] = useState('');
 
   const [viewerUserId, setViewerUserId] = useState<string | null>(null);
+  const [isInvited, setIsInvited] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
@@ -126,7 +127,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       if (targetTripId && targetTripId !== trip.id) {
         return;
       }
-      if (viewerUserId && trip.ownerUserId === viewerUserId) {
+      if (viewerUserId && (trip.ownerUserId === viewerUserId || isInvited)) {
         setIsInfoOpen(true);
       }
     };
@@ -135,10 +136,10 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     return () => {
       window.removeEventListener('open-trip-info-dialog', openInfoHandler);
     };
-  }, [trip, viewerUserId]);
+  }, [trip, viewerUserId, isInvited]);
 
   useEffect(() => {
-    if (!trip || !viewerUserId || trip.ownerUserId !== viewerUserId) {
+    if (!trip || !viewerUserId || (trip.ownerUserId !== viewerUserId && !isInvited)) {
       return;
     }
 
@@ -147,6 +148,30 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       setIsInfoOpen(true);
       sessionStorage.removeItem('open-trip-info-id');
     }
+  }, [trip, viewerUserId, isInvited]);
+
+  useEffect(() => {
+    const checkInvited = async () => {
+      if (!trip || !viewerUserId || trip.ownerUserId === viewerUserId) {
+        setIsInvited(false);
+        return;
+      }
+
+      const { client, error } = getSupabaseBrowserClient();
+      if (!client) {
+        setErrorMessage(error);
+        return;
+      }
+
+      const result = await isInvitedTripMember(client, trip.id, viewerUserId);
+      if (result.error) {
+        setErrorMessage(result.error);
+        return;
+      }
+      setIsInvited(result.data);
+    };
+
+    void checkInvited();
   }, [trip, viewerUserId]);
 
   useEffect(() => {
@@ -182,7 +207,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     setIsUnlocked(isGranted);
   }, [trip, viewerUserId]);
 
-  const handleUnlock = () => {
+  const handleUnlock = async () => {
     if (!trip) {
       return;
     }
@@ -191,6 +216,23 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       setIsUnlocked(true);
       setUnlockErrorMessage('');
       localStorage.setItem(getTripAccessStorageKey(trip.id), 'granted');
+
+      if (viewerUserId && trip.ownerUserId !== viewerUserId) {
+        const { client, error } = getSupabaseBrowserClient();
+        if (!client) {
+          setErrorMessage(error);
+          return;
+        }
+
+        const saveResult = await addTripMember(client, trip.id, viewerUserId);
+        if (saveResult.error) {
+          setErrorMessage(saveResult.error);
+          return;
+        }
+
+        setIsInvited(true);
+      }
+
       return;
     }
 
@@ -264,7 +306,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const dateOptions = enumerateDateRange(trip.startDate, trip.endDate);
   const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
   const needsPasswordGate = needsPassword && !isOwner;
-  const canEdit = isOwner || (needsPassword && isUnlocked);
+  const canEdit = isOwner || isInvited || (needsPassword && isUnlocked);
   const shareUrl = buildTripShareUrl(trip.id);
 
   return (
@@ -328,9 +370,12 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
           trip={trip}
           shareUrl={shareUrl}
           showShareInfo={isOwner}
+          viewerUserId={viewerUserId}
+          canDeleteTrip={isOwner}
+          canLeaveTrip={isInvited}
           onClose={() => setIsInfoOpen(false)}
           onUpdated={(updatedTrip) => setTrip(updatedTrip)}
-          onDeleted={handleDeletedTrip}
+          onRemoved={handleDeletedTrip}
         />
       </Stack>
     </Container>
