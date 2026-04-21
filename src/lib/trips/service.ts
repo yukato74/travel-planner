@@ -82,6 +82,11 @@ export async function listTrips(
   }
 
   if (membershipResult.error) {
+    const isMissingTripMembersTable =
+      membershipResult.error.code === '42P01' || membershipResult.error.message.includes('trip_members');
+    if (isMissingTripMembersTable) {
+      return { data: ownerTripsResult.data.map(mapTrip), error: null };
+    }
     return { data: [], error: `Failed to fetch shared trips: ${membershipResult.error.message}` };
   }
 
@@ -216,6 +221,10 @@ export async function addTripMember(
   );
 
   if (error) {
+    const isMissingTripMembersTable = error.code === '42P01' || error.message.includes('trip_members');
+    if (isMissingTripMembersTable) {
+      return { error: null };
+    }
     return { error: `Failed to save shared trip: ${error.message}` };
   }
 
@@ -235,6 +244,10 @@ export async function isInvitedTripMember(
     .maybeSingle();
 
   if (error) {
+    const isMissingTripMembersTable = error.code === '42P01' || error.message.includes('trip_members');
+    if (isMissingTripMembersTable) {
+      return { data: false, error: null };
+    }
     return { data: false, error: `Failed to check trip membership: ${error.message}` };
   }
 
