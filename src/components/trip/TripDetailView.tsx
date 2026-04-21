@@ -299,7 +299,14 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
 
             <Stack sx={{ pb: 0.5 }}>
               {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />}
-              {activeTab === 1 && <FlightsHotelsTab tripId={trip.id} canEdit={canEdit} />}
+              {activeTab === 1 && (
+                <FlightsHotelsTab
+                  tripId={trip.id}
+                  tripStartDate={trip.startDate}
+                  tripEndDate={trip.endDate}
+                  canEdit={canEdit}
+                />
+              )}
               {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
             </Stack>
           </Stack>

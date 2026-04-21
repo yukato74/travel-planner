@@ -29,6 +29,8 @@ import { Flight, Hotel } from '@/lib/types/trip';
 
 type FlightsHotelsTabProps = {
   tripId: string;
+  tripStartDate: string;
+  tripEndDate: string;
   canEdit?: boolean;
 };
 
@@ -91,6 +93,18 @@ function formatMonthDayTime(value: string): string {
   const dayNum = Number(day);
   const hhmm = timePart.slice(0, 5);
   return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
+}
+
+function normalizeDateTimeLocal(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+  const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+  if (match) {
+    return `${match[1]}T${match[2]}`;
+  }
+  return trimmed;
 }
 
 function getDayDiff(start: string, end: string): number {
@@ -225,7 +239,7 @@ function AirportAutocompleteField({
   );
 }
 
-export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabProps) {
+export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit = true }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -244,6 +258,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
     arrivalTime: '',
     memo: '',
   });
+  const [addFlightArrivalTouched, setAddFlightArrivalTouched] = useState(false);
 
   const [addHotel, setAddHotel] = useState({
     name: '',
@@ -254,6 +269,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
   });
 
   const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
+  const [editFlightArrivalTouched, setEditFlightArrivalTouched] = useState(true);
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
   const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
   const [previewHotel, setPreviewHotel] = useState<Hotel | null>(null);
@@ -263,6 +279,40 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
+
+  const handleAddFlightDepartureChange = (value: string) => {
+    setAddFlight((prev) => {
+      const next = { ...prev, departureTime: value };
+      if (!addFlightArrivalTouched || !prev.arrivalTime) {
+        next.arrivalTime = value;
+      }
+      return next;
+    });
+  };
+
+  const openEditFlight = (flight: Flight) => {
+    const departureTime = normalizeDateTimeLocal(flight.departureTime);
+    const arrivalTime = normalizeDateTimeLocal(flight.arrivalTime);
+    setEditingFlight({
+      ...flight,
+      departureTime,
+      arrivalTime,
+    });
+    setEditFlightArrivalTouched(Boolean(arrivalTime));
+  };
+
+  const handleEditFlightDepartureChange = (value: string) => {
+    setEditingFlight((prev) => {
+      if (!prev) {
+        return prev;
+      }
+      const next = { ...prev, departureTime: value };
+      if (!editFlightArrivalTouched || !prev.arrivalTime) {
+        next.arrivalTime = value;
+      }
+      return next;
+    });
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -332,6 +382,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
       arrivalTime: '',
       memo: '',
     });
+    setAddFlightArrivalTouched(false);
     setAddFlightOpen(false);
   };
 
@@ -368,6 +419,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
     }
 
     setFlights((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
+    setEditFlightArrivalTouched(true);
     setEditingFlight(null);
   };
 
@@ -663,7 +715,7 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Button
               variant="contained"
               onClick={() => {
-                setEditingFlight(previewFlight);
+                openEditFlight(previewFlight);
                 setPreviewFlight(null);
               }}
             >
@@ -709,7 +761,16 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
         </DialogActions>
       </Dialog>
 
-      <Dialog open={canEdit && addFlightOpen} onClose={() => setAddFlightOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={canEdit && addFlightOpen}
+        onClose={() => {
+          setAddFlightOpen(false);
+          setAddFlightArrivalTouched(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+      >
         <Box component="form" onSubmit={handleAddFlight}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add flight</DialogTitle>
           <DialogContent>
@@ -730,31 +791,57 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                 type="datetime-local"
                 label="Departure time (local)"
                 value={addFlight.departureTime}
-                onChange={(e) => setAddFlight((prev) => ({ ...prev, departureTime: e.target.value }))}
+                onChange={(e) => handleAddFlightDepartureChange(e.target.value)}
                 required
                 helperText="Local time at departure location"
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
+                }}
               />
               <TextField
                 type="datetime-local"
                 label="Arrival time (local)"
                 value={addFlight.arrivalTime}
-                onChange={(e) => setAddFlight((prev) => ({ ...prev, arrivalTime: e.target.value }))}
+                onChange={(e) => {
+                  setAddFlightArrivalTouched(true);
+                  setAddFlight((prev) => ({ ...prev, arrivalTime: e.target.value }));
+                }}
                 required
                 helperText="Local time at arrival location"
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
+                }}
               />
               <TextField label="Memo" value={addFlight.memo} onChange={(e) => setAddFlight((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setAddFlightOpen(false)} color="inherit">Cancel</Button>
+            <Button
+              onClick={() => {
+                setAddFlightOpen(false);
+                setAddFlightArrivalTouched(false);
+              }}
+              color="inherit"
+            >
+              Cancel
+            </Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Add flight'}</Button>
           </DialogActions>
         </Box>
       </Dialog>
 
-      <Dialog open={canEdit && Boolean(editingFlight)} onClose={() => setEditingFlight(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <Dialog
+        open={canEdit && Boolean(editingFlight)}
+        onClose={() => {
+          setEditingFlight(null);
+          setEditFlightArrivalTouched(true);
+        }}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile}
+      >
         <Box component="form" onSubmit={handleSaveFlight}>
           <DialogTitle sx={{ fontWeight: 700 }}>Edit flight</DialogTitle>
           <DialogContent>
@@ -775,25 +862,42 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
                 type="datetime-local"
                 label="Departure time (local)"
                 value={editingFlight?.departureTime ?? ''}
-                onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, departureTime: e.target.value } : prev))}
+                onChange={(e) => handleEditFlightDepartureChange(e.target.value)}
                 required
                 helperText="Local time at departure location"
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
+                }}
               />
               <TextField
                 type="datetime-local"
                 label="Arrival time (local)"
                 value={editingFlight?.arrivalTime ?? ''}
-                onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: e.target.value } : prev))}
+                onChange={(e) => {
+                  setEditFlightArrivalTouched(true);
+                  setEditingFlight((prev) => (prev ? { ...prev, arrivalTime: e.target.value } : prev));
+                }}
                 required
                 helperText="Local time at arrival location"
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: `${tripStartDate}T00:00`, max: `${tripEndDate}T23:59` },
+                }}
               />
               <TextField label="Memo" value={editingFlight?.memo ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditingFlight(null)} color="inherit">Cancel</Button>
+            <Button
+              onClick={() => {
+                setEditingFlight(null);
+                setEditFlightArrivalTouched(true);
+              }}
+              color="inherit"
+            >
+              Cancel
+            </Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
@@ -817,8 +921,22 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={addHotel.name} onChange={(e) => setAddHotel((prev) => ({ ...prev, name: e.target.value }))} required />
               <TextField label="Address" value={addHotel.address} onChange={(e) => setAddHotel((prev) => ({ ...prev, address: e.target.value }))} />
-              <TextField type="date" label="Check-in" value={addHotel.checkInDate} onChange={(e) => setAddHotel((prev) => ({ ...prev, checkInDate: e.target.value }))} required slotProps={{ inputLabel: { shrink: true } }} />
-              <TextField type="date" label="Check-out" value={addHotel.checkOutDate} onChange={(e) => setAddHotel((prev) => ({ ...prev, checkOutDate: e.target.value }))} required slotProps={{ inputLabel: { shrink: true } }} />
+              <TextField
+                type="date"
+                label="Check-in"
+                value={addHotel.checkInDate}
+                onChange={(e) => setAddHotel((prev) => ({ ...prev, checkInDate: e.target.value }))}
+                required
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
+              />
+              <TextField
+                type="date"
+                label="Check-out"
+                value={addHotel.checkOutDate}
+                onChange={(e) => setAddHotel((prev) => ({ ...prev, checkOutDate: e.target.value }))}
+                required
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
+              />
               <TextField label="Memo" value={addHotel.memo} onChange={(e) => setAddHotel((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
@@ -836,8 +954,22 @@ export function FlightsHotelsTab({ tripId, canEdit = true }: FlightsHotelsTabPro
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
               <TextField label="Address" value={editingHotel?.address ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
-              <TextField type="date" label="Check-in" value={editingHotel?.checkInDate ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkInDate: e.target.value } : prev))} required slotProps={{ inputLabel: { shrink: true } }} />
-              <TextField type="date" label="Check-out" value={editingHotel?.checkOutDate ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkOutDate: e.target.value } : prev))} required slotProps={{ inputLabel: { shrink: true } }} />
+              <TextField
+                type="date"
+                label="Check-in"
+                value={editingHotel?.checkInDate ?? ''}
+                onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkInDate: e.target.value } : prev))}
+                required
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
+              />
+              <TextField
+                type="date"
+                label="Check-out"
+                value={editingHotel?.checkOutDate ?? ''}
+                onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkOutDate: e.target.value } : prev))}
+                required
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: tripStartDate, max: tripEndDate } }}
+              />
               <TextField label="Memo" value={editingHotel?.memo ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
