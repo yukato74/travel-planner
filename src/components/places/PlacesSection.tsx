@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  closestCenter,
   DndContext,
   DragEndEvent,
   DragOverlay,
@@ -77,17 +76,13 @@ type DaySectionProps = {
 };
 
 function FlightItem({ item }: { item: ItineraryFlightItem }) {
-  const { setNodeRef, isOver } = useDroppable({ id: item.id });
-
   return (
     <Paper
-      ref={setNodeRef}
       variant="outlined"
       sx={{
         p: 1,
         mb: 1,
         borderRadius: 1,
-        borderColor: isOver ? 'primary.main' : 'divider',
       }}
     >
       <Stack spacing={0.25}>
@@ -99,6 +94,23 @@ function FlightItem({ item }: { item: ItineraryFlightItem }) {
         </Typography>
       </Stack>
     </Paper>
+  );
+}
+
+function InsertDropZone({ id }: { id: string }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <Box
+      ref={setNodeRef}
+      sx={{
+        height: 8,
+        my: 0.25,
+        borderRadius: 999,
+        bgcolor: isOver ? 'primary.main' : 'transparent',
+        opacity: isOver ? 0.35 : 0,
+        transition: 'opacity 120ms ease',
+      }}
+    />
   );
 }
 
@@ -158,24 +170,32 @@ function DaySection({
               </Typography>
             ) : (
               <>
-                {orderedItemIds.map((id) => {
+                <InsertDropZone id={`insert:${date}:0`} />
+                {orderedItemIds.map((id, index) => {
                   const place = places.find((item) => item.id === id);
                   if (place) {
                     return (
-                      <PlaceItem
-                        key={place.id}
-                        place={place}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        disabled={saving}
-                        canEdit={canEdit}
-                      />
+                      <Box key={place.id}>
+                        <PlaceItem
+                          place={place}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          disabled={saving}
+                          canEdit={canEdit}
+                        />
+                        <InsertDropZone id={`insert:${date}:${index + 1}`} />
+                      </Box>
                     );
                   }
 
                   const flight = flights.find((item) => item.id === id);
                   if (flight) {
-                    return <FlightItem key={flight.id} item={flight} />;
+                    return (
+                      <Box key={flight.id}>
+                        <FlightItem item={flight} />
+                        <InsertDropZone id={`insert:${date}:${index + 1}`} />
+                      </Box>
+                    );
                   }
 
                   return null;
@@ -600,10 +620,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     const overId = String(over.id);
+    const insertMatch = overId.match(/^insert:([^:]+):(\d+)$/);
     const overFlightItem = itineraryFlightItems.find((item) => item.id === overId);
     const overPlace = places.find((place) => place.id === overId);
     const sourceDate = activeItem.visitDate;
-    const targetDate = dateOptions.includes(overId) ? overId : overPlace?.visitDate ?? overFlightItem?.visitDate;
+    const targetDate = insertMatch
+      ? insertMatch[1]
+      : dateOptions.includes(overId)
+        ? overId
+        : overPlace?.visitDate ?? overFlightItem?.visitDate;
 
     if (!targetDate) {
       return;
@@ -618,8 +643,13 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     nextDayItemOrderByDay[sourceDate] = nextDayItemOrderByDay[sourceDate].filter((id) => id !== activeId);
     const targetList = [...(nextDayItemOrderByDay[targetDate] ?? [])];
-    const rawIndex = overId === targetDate ? targetList.length : targetList.indexOf(overId);
-    const insertIndex = rawIndex < 0 ? targetList.length : rawIndex;
+    let insertIndex = insertMatch
+      ? Number(insertMatch[2])
+      : overId === targetDate
+        ? targetList.length
+        : targetList.indexOf(overId);
+    if (Number.isNaN(insertIndex) || insertIndex < 0) insertIndex = targetList.length;
+    if (insertIndex > targetList.length) insertIndex = targetList.length;
     targetList.splice(insertIndex, 0, activeId);
     nextDayItemOrderByDay[targetDate] = targetList;
     setDayItemOrderByDay(nextDayItemOrderByDay);
@@ -670,7 +700,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <Grid container spacing={1.5}>
           {dateOptions.map((date, index) => (
             <Grid key={date} size={{ xs: 12 }}>
