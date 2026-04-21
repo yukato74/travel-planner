@@ -970,7 +970,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        transform: previewOpen ? 'translateX(-20px)' : 'none',
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
