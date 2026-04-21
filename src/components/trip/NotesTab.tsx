@@ -2,7 +2,7 @@
 
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -14,12 +14,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
+import Slide from '@mui/material/Slide';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Note } from '@/lib/types/trip';
@@ -28,6 +30,13 @@ type NotesTabProps = {
   tripId: string;
   canEdit?: boolean;
 };
+
+const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
+  props: TransitionProps & { children: ReactElement<unknown, any> },
+  ref: Ref<unknown>,
+) {
+  return <Slide direction="left" ref={ref} {...props} />;
+});
 
 export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -207,8 +216,19 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     );
   }
 
+  const previewOpen = Boolean(previewNote);
+
   return (
-    <Stack spacing={1.5}>
+    <Stack
+      spacing={1.5}
+      sx={{
+        transition: theme.transitions.create(['transform', 'opacity'], {
+          duration: theme.transitions.duration.shorter,
+        }),
+        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        opacity: previewOpen ? 0.92 : 1,
+      }}
+    >
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -275,13 +295,15 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Close">
-              <CloseIcon fontSize="small" />
+            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewNote && (
               <Button

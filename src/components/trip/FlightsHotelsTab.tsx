@@ -3,7 +3,7 @@
 import Alert from '@mui/material/Alert';
 import Autocomplete from '@mui/material/Autocomplete';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import FlightIcon from '@mui/icons-material/Flight';
 import Box from '@mui/material/Box';
@@ -17,12 +17,14 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
+import Slide from '@mui/material/Slide';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enumerateDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
@@ -41,6 +43,13 @@ type AirportOption = {
   label: string;
   value: string;
 };
+
+const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
+  props: TransitionProps & { children: ReactElement<unknown, any> },
+  ref: Ref<unknown>,
+) {
+  return <Slide direction="left" ref={ref} {...props} />;
+});
 
 function parseAirportLabel(label: string): { name: string; code: string } {
   const trimmed = label.trim();
@@ -670,8 +679,19 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     );
   }
 
+  const previewOpen = Boolean(previewFlight || previewHotel);
+
   return (
-    <Stack spacing={1.5}>
+    <Stack
+      spacing={1.5}
+      sx={{
+        transition: theme.transitions.create(['transform', 'opacity'], {
+          duration: theme.transitions.duration.shorter,
+        }),
+        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        opacity: previewOpen ? 0.92 : 1,
+      }}
+    >
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -810,13 +830,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Close">
-              <CloseIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
               <Button
@@ -870,13 +892,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Close">
-              <CloseIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
               <Button

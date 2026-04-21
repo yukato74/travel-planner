@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
 import Alert from '@mui/material/Alert';
@@ -34,12 +34,14 @@ import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
+import Slide from '@mui/material/Slide';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
 import { listHotelsByTripId } from '@/lib/hotels/service';
@@ -128,6 +130,13 @@ type PlacesSectionProps = {
   dateOptions: string[];
   canEdit?: boolean;
 };
+
+const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
+  props: TransitionProps & { children: ReactElement<unknown, any> },
+  ref: Ref<unknown>,
+) {
+  return <Slide direction="left" ref={ref} {...props} />;
+});
 
 type DaySectionProps = {
   date: string;
@@ -882,8 +891,19 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     );
   }
 
+  const previewOpen = Boolean(previewPlace);
+
   return (
-    <Stack spacing={2}>
+    <Stack
+      spacing={2}
+      sx={{
+        transition: theme.transitions.create(['transform', 'opacity'], {
+          duration: theme.transitions.duration.shorter,
+        }),
+        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        opacity: previewOpen ? 0.92 : 1,
+      }}
+    >
       {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -944,13 +964,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
+        TransitionComponent={PreviewDialogTransition}
+        keepMounted
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Close">
-              <CloseIcon fontSize="small" />
+            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
+              <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewPlace && (
               <Button
