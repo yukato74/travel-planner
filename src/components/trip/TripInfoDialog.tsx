@@ -8,6 +8,9 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
@@ -49,6 +52,7 @@ export function TripInfoDialog({
   const [sharePassword, setSharePassword] = useState(trip.sharePassword);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
   const [confirmActionOpen, setConfirmActionOpen] = useState(false);
 
   useEffect(() => {
@@ -62,8 +66,18 @@ export function TripInfoDialog({
     setIsShareProtected(trip.isShareProtected);
     setSharePassword(trip.sharePassword);
     setErrorMessage(null);
+    setCopiedMessage(null);
     setConfirmActionOpen(false);
   }, [open, trip]);
+
+  const handleCopy = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedMessage(`${label} copied.`);
+    } catch {
+      setErrorMessage(`Failed to copy ${label.toLowerCase()}.`);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -178,6 +192,7 @@ export function TripInfoDialog({
         <DialogContent>
           <Stack spacing={1.5} mt={0.5}>
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+            {copiedMessage && <Alert severity="success">{copiedMessage}</Alert>}
 
             <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
 
@@ -211,14 +226,42 @@ export function TripInfoDialog({
                 <TextField
                   label="Share password"
                   value={sharePassword}
-                  onChange={(event) => setSharePassword(event.target.value.toUpperCase())}
                   inputProps={{ maxLength: 6 }}
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton edge="end" aria-label="Copy code" onClick={() => void handleCopy(sharePassword, 'Code')}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                   helperText="6 alphanumeric characters"
                   required
                   fullWidth
                 />
 
-                <TextField label="Share URL" value={shareUrl} fullWidth size="small" slotProps={{ input: { readOnly: true } }} />
+                <TextField
+                  label="Share URL"
+                  value={shareUrl}
+                  fullWidth
+                  size="small"
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton edge="end" aria-label="Copy URL" onClick={() => void handleCopy(shareUrl, 'URL')}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
               </>
             )}
           </Stack>
