@@ -43,9 +43,11 @@ type FlightsHotelsTabProps = {
 type BookingEditRequest = {
   kind: 'flight' | 'hotel';
   id: string;
+  source?: 'itinerary-preview';
 };
 
 const OPEN_BOOKING_EDIT_STORAGE_KEY = 'open-booking-edit-request';
+const OPEN_ITINERARY_BOOKING_PREVIEW_EVENT = 'open-itinerary-booking-preview';
 
 type AirportOption = {
   id: string;
@@ -367,8 +369,12 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   });
 
   const [editingFlight, setEditingFlight] = useState<Flight | null>(null);
+  const [editFlightFromPreview, setEditFlightFromPreview] = useState(false);
+  const [editFlightFromItineraryPreview, setEditFlightFromItineraryPreview] = useState(false);
   const [editFlightArrivalTouched, setEditFlightArrivalTouched] = useState(true);
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
+  const [editHotelFromPreview, setEditHotelFromPreview] = useState(false);
+  const [editHotelFromItineraryPreview, setEditHotelFromItineraryPreview] = useState(false);
   const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
   const [previewHotel, setPreviewHotel] = useState<Hotel | null>(null);
   const previewHistoryPushedRef = useRef(false);
@@ -437,6 +443,33 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     setEditFlightArrivalTouched(Boolean(arrivalTime));
   };
 
+  const closeEditFlight = () => {
+    if (editingFlight && editFlightFromPreview) {
+      const latest = flights.find((item) => item.id === editingFlight.id) ?? editingFlight;
+      setPreviewFlight(latest);
+    }
+    if (editingFlight && editFlightFromItineraryPreview && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(OPEN_ITINERARY_BOOKING_PREVIEW_EVENT, { detail: { kind: 'flight', id: editingFlight.id } }));
+    }
+    setEditingFlight(null);
+    setEditFlightArrivalTouched(true);
+    setEditFlightFromPreview(false);
+    setEditFlightFromItineraryPreview(false);
+  };
+
+  const closeEditHotel = () => {
+    if (editingHotel && editHotelFromPreview) {
+      const latest = hotels.find((item) => item.id === editingHotel.id) ?? editingHotel;
+      setPreviewHotel(latest);
+    }
+    if (editingHotel && editHotelFromItineraryPreview && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(OPEN_ITINERARY_BOOKING_PREVIEW_EVENT, { detail: { kind: 'hotel', id: editingHotel.id } }));
+    }
+    setEditingHotel(null);
+    setEditHotelFromPreview(false);
+    setEditHotelFromItineraryPreview(false);
+  };
+
   const handleEditFlightDepartureChange = (value: string) => {
     setEditingFlight((prev) => {
       if (!prev) {
@@ -485,6 +518,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       previewHistoryPushedRef.current = false;
       setPreviewFlight(null);
       setPreviewHotel(null);
+      setEditFlightFromPreview(false);
+      setEditFlightFromItineraryPreview(request.source === 'itinerary-preview');
       openEditFlight(target);
       return true;
     }
@@ -496,6 +531,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     previewHistoryPushedRef.current = false;
     setPreviewFlight(null);
     setPreviewHotel(null);
+    setEditHotelFromPreview(false);
+    setEditHotelFromItineraryPreview(request.source === 'itinerary-preview');
     setEditingHotel(target);
     return true;
   }, [flights, hotels]);
@@ -668,6 +705,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     setFlights((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
     setEditFlightArrivalTouched(true);
     setEditingFlight(null);
+    setEditFlightFromPreview(false);
+    setEditFlightFromItineraryPreview(false);
   };
 
   const handleDeleteFlight = async () => {
@@ -762,6 +801,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
     setHotels((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
     setEditingHotel(null);
+    setEditHotelFromPreview(false);
+    setEditHotelFromItineraryPreview(false);
   };
 
   const handleDeleteHotel = async () => {
@@ -854,6 +895,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                           aria-label="Edit"
                           onClick={(event) => {
                             event.stopPropagation();
+                            setEditFlightFromPreview(false);
+                            setEditFlightFromItineraryPreview(false);
                             openEditFlight(flight);
                           }}
                         >
@@ -918,6 +961,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                           aria-label="Edit"
                           onClick={(event) => {
                             event.stopPropagation();
+                            setEditHotelFromPreview(false);
+                            setEditHotelFromItineraryPreview(false);
                             setEditingHotel(hotel);
                           }}
                         >
@@ -959,6 +1004,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewHistoryPushedRef.current = false;
+                  setEditFlightFromPreview(true);
+                  setEditFlightFromItineraryPreview(false);
                   openEditFlight(previewFlight);
                   setPreviewFlight(null);
                 }}
@@ -1022,6 +1069,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewHistoryPushedRef.current = false;
+                  setEditHotelFromPreview(true);
+                  setEditHotelFromItineraryPreview(false);
                   setEditingHotel(previewHotel);
                   setPreviewHotel(null);
                 }}
@@ -1139,10 +1188,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
       <Dialog
         open={canEdit && Boolean(editingFlight)}
-        onClose={() => {
-          setEditingFlight(null);
-          setEditFlightArrivalTouched(true);
-        }}
+        onClose={closeEditFlight}
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
@@ -1161,6 +1207,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                     setDeletingFlight(editingFlight);
                     setEditingFlight(null);
                     setEditFlightArrivalTouched(true);
+                    setEditFlightFromPreview(false);
+                    setEditFlightFromItineraryPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
@@ -1168,10 +1216,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               )}
               <IconButton
                 aria-label="Close"
-                onClick={() => {
-                  setEditingFlight(null);
-                  setEditFlightArrivalTouched(true);
-                }}
+                onClick={closeEditFlight}
                 color="inherit"
                 sx={modalNeutralIconButtonSx}
               >
@@ -1291,7 +1336,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
       <Dialog
         open={canEdit && Boolean(editingHotel)}
-        onClose={() => setEditingHotel(null)}
+        onClose={closeEditHotel}
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
@@ -1309,12 +1354,14 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   onClick={() => {
                     setDeletingHotel(editingHotel);
                     setEditingHotel(null);
+                    setEditHotelFromPreview(false);
+                    setEditHotelFromItineraryPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingHotel(null)} color="inherit" sx={modalNeutralIconButtonSx}>
+              <IconButton aria-label="Close" onClick={closeEditHotel} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>

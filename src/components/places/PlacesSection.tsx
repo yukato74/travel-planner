@@ -143,6 +143,12 @@ const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
 });
 
 const OPEN_BOOKING_EDIT_STORAGE_KEY = 'open-booking-edit-request';
+const OPEN_ITINERARY_BOOKING_PREVIEW_EVENT = 'open-itinerary-booking-preview';
+type BookingEditRequest = {
+  kind: 'flight' | 'hotel';
+  id: string;
+  source?: 'itinerary-preview';
+};
 
 type DaySectionProps = {
   date: string;
@@ -348,6 +354,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [addMemo, setAddMemo] = useState('');
 
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [editFromPreview, setEditFromPreview] = useState(false);
   const [previewPlace, setPreviewPlace] = useState<Place | null>(null);
   const previewPlaceHistoryPushedRef = useRef(false);
   const [previewFlight, setPreviewFlight] = useState<Flight | null>(null);
@@ -652,16 +659,26 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setAddDate(null);
   };
 
-  const openEditDialog = (place: Place) => {
+  const openEditDialog = (place: Place, fromPreview = false) => {
     if (!canEdit) {
       return;
     }
 
+    setEditFromPreview(fromPreview);
     setEditingPlace(place);
     setEditName(place.name);
     setEditAddress(place.address);
     setEditMemo(place.memo);
     setEditVisitDate(place.visitDate);
+  };
+
+  const closeEditPlace = () => {
+    if (editingPlace && editFromPreview) {
+      const latest = places.find((item) => item.id === editingPlace.id) ?? editingPlace;
+      setPreviewPlace(latest);
+    }
+    setEditingPlace(null);
+    setEditFromPreview(false);
   };
 
   const openPreviewPlace = (place: Place) => {
@@ -694,14 +711,14 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
   }, [flights]);
 
-  const openPreviewHotel = (hotel: Hotel) => {
+  const openPreviewHotel = useCallback((hotel: Hotel) => {
     setPreviewFlight(null);
     setPreviewHotel(hotel);
     if (typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'hotel' }, '');
       previewBookingHistoryPushedRef.current = true;
     }
-  };
+  }, []);
 
   const closePreviewBooking = useCallback(() => {
     if (previewBookingHistoryPushedRef.current && typeof window !== 'undefined') {
@@ -713,7 +730,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setPreviewHotel(null);
   }, []);
 
-  const openBookingEdit = (request: { kind: 'flight' | 'hotel'; id: string }) => {
+  const openBookingEdit = (request: BookingEditRequest) => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem(OPEN_BOOKING_EDIT_STORAGE_KEY, JSON.stringify(request));
       window.dispatchEvent(new CustomEvent('open-booking-edit', { detail: request }));
@@ -722,6 +739,31 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setPreviewFlight(null);
     setPreviewHotel(null);
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const handleOpenItineraryBookingPreview = (event: Event) => {
+      const customEvent = event as CustomEvent<{ kind: 'flight' | 'hotel'; id: string }>;
+      const request = customEvent.detail;
+      if (!request?.id || (request.kind !== 'flight' && request.kind !== 'hotel')) {
+        return;
+      }
+      if (request.kind === 'flight') {
+        openPreviewFlight(request.id);
+        return;
+      }
+      const target = hotels.find((item) => item.id === request.id);
+      if (target) {
+        openPreviewHotel(target);
+      }
+    };
+    window.addEventListener(OPEN_ITINERARY_BOOKING_PREVIEW_EVENT, handleOpenItineraryBookingPreview);
+    return () => {
+      window.removeEventListener(OPEN_ITINERARY_BOOKING_PREVIEW_EVENT, handleOpenItineraryBookingPreview);
+    };
+  }, [hotels, openPreviewFlight, openPreviewHotel]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -821,6 +863,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     setEditingPlace(null);
+    setEditFromPreview(false);
   };
 
   const handleDelete = async () => {
@@ -1091,7 +1134,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewPlaceHistoryPushedRef.current = false;
-                  openEditDialog(previewPlace);
+                  openEditDialog(previewPlace, true);
                   setPreviewPlace(null);
                 }}
               >
@@ -1154,7 +1197,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
-              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
+              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id, source: 'itinerary-preview' })}>
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             )}
@@ -1201,7 +1244,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
-              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
+              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id, source: 'itinerary-preview' })}>
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             )}
@@ -1302,7 +1345,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog
         open={canEdit && Boolean(editingPlace)}
-        onClose={() => setEditingPlace(null)}
+        onClose={closeEditPlace}
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
@@ -1320,12 +1363,13 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   onClick={() => {
                     setDeletingPlace(editingPlace);
                     setEditingPlace(null);
+                    setEditFromPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingPlace(null)} color="inherit" sx={modalNeutralIconButtonSx}>
+              <IconButton aria-label="Close" onClick={closeEditPlace} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>

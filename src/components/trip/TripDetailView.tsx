@@ -44,17 +44,6 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
-  useEffect(() => {
-    const openBookingEditHandler = () => {
-      setActiveTab(1);
-    };
-
-    window.addEventListener('open-booking-edit', openBookingEditHandler);
-    return () => {
-      window.removeEventListener('open-booking-edit', openBookingEditHandler);
-    };
-  }, []);
-
   const loadTripData = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -372,15 +361,17 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             </Tabs>
 
             <Stack sx={{ pb: 0.5 }}>
-              {activeTab === 0 && <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />}
-              {activeTab === 1 && (
+              <Stack sx={{ display: activeTab === 0 ? 'block' : 'none' }}>
+                <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />
+              </Stack>
+              <Stack sx={{ display: activeTab === 1 ? 'block' : 'none' }}>
                 <FlightsHotelsTab
                   tripId={trip.id}
                   tripStartDate={trip.startDate}
                   tripEndDate={trip.endDate}
                   canEdit={canEdit}
                 />
-              )}
+              </Stack>
               {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
             </Stack>
           </Stack>

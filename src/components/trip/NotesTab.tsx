@@ -52,6 +52,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [previewNote, setPreviewNote] = useState<Note | null>(null);
+  const [editFromPreview, setEditFromPreview] = useState(false);
   const previewNoteHistoryPushedRef = useRef(false);
   const [deletingNote, setDeletingNote] = useState<Note | null>(null);
 
@@ -219,6 +220,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
     setNotes((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
     setEditingNote(null);
+    setEditFromPreview(false);
   };
 
   const handleDelete = async () => {
@@ -244,6 +246,15 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
     setNotes((prev) => prev.filter((item) => item.id !== deletingNote.id));
     setDeletingNote(null);
+  };
+
+  const closeEditNote = () => {
+    if (editingNote && editFromPreview) {
+      const latest = notes.find((item) => item.id === editingNote.id) ?? editingNote;
+      setPreviewNote(latest);
+    }
+    setEditingNote(null);
+    setEditFromPreview(false);
   };
 
   if (loading) {
@@ -310,6 +321,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                           aria-label="Edit"
                           onClick={(event) => {
                             event.stopPropagation();
+                            setEditFromPreview(false);
                             setEditingNote(note);
                           }}
                         >
@@ -348,6 +360,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                 sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewNoteHistoryPushedRef.current = false;
+                  setEditFromPreview(true);
                   setEditingNote(previewNote);
                   setPreviewNote(null);
                 }}
@@ -403,7 +416,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
       <Dialog
         open={canEdit && Boolean(editingNote)}
-        onClose={() => setEditingNote(null)}
+        onClose={closeEditNote}
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
@@ -421,12 +434,13 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                   onClick={() => {
                     setDeletingNote(editingNote);
                     setEditingNote(null);
+                    setEditFromPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingNote(null)} color="inherit" sx={modalNeutralIconButtonSx}>
+              <IconButton aria-label="Close" onClick={closeEditNote} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>
