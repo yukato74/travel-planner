@@ -419,6 +419,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
     '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
+  const saveButtonSx = { width: '100%', maxWidth: 520 };
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
   const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
 
@@ -1192,7 +1193,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
       </Dialog>
@@ -1272,7 +1273,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
       </Dialog>
@@ -1340,7 +1341,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
       </Dialog>
@@ -1419,7 +1420,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
       </Dialog>

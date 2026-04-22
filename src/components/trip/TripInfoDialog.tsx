@@ -87,6 +87,7 @@ export function TripInfoDialog({
     '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
     '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
+  const saveButtonSx = { width: '100%', maxWidth: 520 };
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -338,7 +339,7 @@ export function TripInfoDialog({
           </Stack>
         </DialogContent>
         <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-          <Button type="submit" variant="contained" disabled={saving}>
+          <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </DialogActions>

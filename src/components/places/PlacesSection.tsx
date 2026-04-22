@@ -408,6 +408,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
     '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
+  const saveButtonSx = { width: '100%', maxWidth: 520 };
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
@@ -1347,7 +1348,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving || !addName.trim()}>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving || !addName.trim()}>
               {saving ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
@@ -1406,7 +1407,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             </Stack>
           </DialogContent>
           <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-            <Button type="submit" variant="contained" disabled={saving || !editName.trim()}>
+            <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving || !editName.trim()}>
               {saving ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
