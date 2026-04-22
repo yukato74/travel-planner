@@ -6,7 +6,6 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
@@ -117,7 +116,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
       <Stack component="form" spacing={2.5} onSubmit={isOtpStep ? handleVerifyOtp : handleSendOtpSubmit}>
         <Typography variant="h5" fontWeight={700}>
-          Sign in
+          Login
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {isOtpStep ? 'Enter the 6-digit verification code sent to your email.' : 'Enter your email to receive a 6-digit verification code.'}
@@ -149,9 +148,6 @@ export function LoginForm({ nextPath }: LoginFormProps) {
         )}
 
         <Stack spacing={1.25}>
-          <Button component={Link} href="/" variant="outlined" fullWidth sx={actionButtonSx} disabled={loading || isRedirecting}>
-            Back
-          </Button>
           {isOtpStep && (
             <Button type="button" variant="outlined" fullWidth sx={actionButtonSx} disabled={loading || isRedirecting} onClick={handleResendClick}>
               Resend code
