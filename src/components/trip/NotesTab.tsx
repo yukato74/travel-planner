@@ -233,7 +233,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>
-        <Stack spacing={1.25}>
+        <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>Notes</Typography>
             {canEdit && (
@@ -250,8 +250,6 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               </Button>
             )}
           </Stack>
-          <Divider />
-
           {notes.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No notes yet.</Typography>
           ) : (

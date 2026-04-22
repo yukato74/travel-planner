@@ -771,7 +771,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>
-        <Stack spacing={1.25}>
+        <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>
               Flights
@@ -782,8 +782,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </Button>
             )}
           </Stack>
-          <Divider />
-
           {flights.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No flights yet.</Typography>
           ) : (
@@ -845,7 +843,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       </Paper>
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>
-        <Stack spacing={1.25}>
+        <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>
               Hotels
@@ -856,8 +854,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </Button>
             )}
           </Stack>
-          <Divider />
-
           {hotels.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No hotels yet.</Typography>
           ) : (
