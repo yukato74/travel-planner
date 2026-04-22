@@ -27,6 +27,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: 'none',
+          textTransform: 'none',
           '&:hover': {
             boxShadow: 'none',
           },
@@ -52,6 +53,13 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           fontWeight: 700,
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
         },
       },
     },
