@@ -326,7 +326,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        transform: previewOpen ? 'translateX(-20px)' : 'none',
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
@@ -397,9 +397,9 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
@@ -433,7 +433,6 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
             </Typography>
           </Stack>
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>

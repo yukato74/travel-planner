@@ -1171,9 +1171,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
@@ -1225,7 +1225,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
             )}
           </Stack>
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog
@@ -1236,9 +1235,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
@@ -1257,7 +1256,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         <DialogContent>
           {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog
@@ -1268,9 +1266,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
@@ -1313,7 +1311,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
             )}
           </Stack>
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>

@@ -908,7 +908,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'translateX(0)',
+        transform: previewOpen ? 'translateX(-20px)' : 'none',
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
@@ -1051,9 +1051,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
@@ -1083,7 +1083,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <DialogContent>
           {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog
@@ -1094,9 +1093,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullScreen={isMobile}
         TransitionComponent={PreviewDialogTransition}
         keepMounted
-        sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
+        scroll="body"
+        disableScrollLock
       >
-        <Box sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <IconButton onClick={closePreview} color="inherit" aria-label="Back">
@@ -1150,7 +1149,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             )}
           </Stack>
         </DialogContent>
-        </Box>
       </Dialog>
 
       <Dialog
