@@ -78,6 +78,12 @@ npm install
 npm run dev
 ```
 
+Optional check:
+
+```bash
+npm run lint
+```
+
 ## Routes
 
 - `/` Home
