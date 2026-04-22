@@ -375,7 +375,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         <Box component="form" onSubmit={handleAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add note
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               <IconButton aria-label="Close" onClick={() => setAddOpen(false)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -412,7 +412,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         <Box component="form" onSubmit={handleSaveEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit note
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               {editingNote && (
                 <IconButton
                   aria-label="Delete"

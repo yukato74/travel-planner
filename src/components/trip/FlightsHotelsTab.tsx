@@ -1081,7 +1081,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleAddFlight} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add flight
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               <IconButton
                 aria-label="Close"
                 onClick={() => {
@@ -1151,7 +1151,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleSaveFlight} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit flight
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               {editingFlight && (
                 <IconButton
                   aria-label="Delete"
@@ -1236,7 +1236,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleAddHotel} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add hotel
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               <IconButton aria-label="Close" onClick={() => setAddHotelOpen(false)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -1300,7 +1300,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleSaveHotel} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit hotel
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               {editingHotel && (
                 <IconButton
                   aria-label="Delete"

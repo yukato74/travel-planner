@@ -232,7 +232,7 @@ export function TripInfoDialog({
       <Box component="form" onSubmit={handleSubmit} sx={mobileFormBoxSx}>
         <DialogTitle sx={{ position: 'relative' }}>
           Edit trip info
-          <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+          <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
             {(canDeleteTrip || canLeaveTrip) && (
               <IconButton
                 aria-label={canDeleteTrip ? 'Delete trip' : 'Leave trip'}

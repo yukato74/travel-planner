@@ -1248,7 +1248,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <Box component="form" onSubmit={handleSubmitAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add place
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               <IconButton aria-label="Close" onClick={() => setAddDate(null)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -1311,7 +1311,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <Box component="form" onSubmit={handleSubmitEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit place
-            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
               {editingPlace && (
                 <IconButton
                   aria-label="Delete"
