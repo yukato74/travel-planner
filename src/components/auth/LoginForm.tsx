@@ -116,7 +116,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
       <Stack component="form" spacing={2.5} onSubmit={isOtpStep ? handleVerifyOtp : handleSendOtpSubmit}>
         <Typography variant="h5" fontWeight={700}>
-          Login
+          Sign in
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {isOtpStep ? 'Enter the 6-digit verification code sent to your email.' : 'Enter your email to receive a 6-digit verification code.'}
