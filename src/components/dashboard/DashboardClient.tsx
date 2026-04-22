@@ -19,11 +19,10 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
 import { formatDisplayDateRange } from '@/lib/date';
-import { getCachedTripList, getLastOpenedTripId, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
+import { getCachedTripList, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { createTrip, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -33,9 +32,7 @@ type DashboardClientProps = {
 };
 
 export function DashboardClient({ userId }: DashboardClientProps) {
-  const router = useRouter();
   const { isOffline } = useOfflineStatus();
-  const redirectedInPwaRef = useRef(false);
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -83,23 +80,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     setErrorMessage(result.error);
     setLoading(false);
   }, [isOffline, userId]);
-
-  useEffect(() => {
-    if (redirectedInPwaRef.current || loading) {
-      return;
-    }
-    if (trips.length === 0) {
-      return;
-    }
-
-    const lastOpenedTripId = getLastOpenedTripId();
-    const targetTripId = lastOpenedTripId && trips.some((trip) => trip.id === lastOpenedTripId)
-      ? lastOpenedTripId
-      : trips[0].id;
-
-    redirectedInPwaRef.current = true;
-    router.replace(`/trip/${targetTripId}`);
-  }, [loading, router, trips]);
 
   useEffect(() => {
     void loadTrips();

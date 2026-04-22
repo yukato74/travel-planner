@@ -4,6 +4,7 @@ import { Flight, Hotel, Note, Place, TripSummary } from '@/lib/types/trip';
 
 const CACHE_PREFIX = 'travel-planner:offline:v1';
 const LAST_OPENED_TRIP_KEY = 'travel-planner:last-opened-trip-id';
+const LAST_OPENED_TRIP_COOKIE = 'travel-planner-last-trip-id';
 
 function buildKey(key: string): string {
   return `${CACHE_PREFIX}:${key}`;
@@ -119,6 +120,7 @@ export function setLastOpenedTripId(tripId: string): void {
 
   try {
     window.localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
+    document.cookie = `${LAST_OPENED_TRIP_COOKIE}=${encodeURIComponent(tripId)}; path=/; max-age=31536000; samesite=lax`;
   } catch {
     // Ignore storage errors to keep UI responsive.
   }
