@@ -55,12 +55,22 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormBoxSx = isMobile
+    ? {
+        minHeight: '100%',
+        mt: 'env(safe-area-inset-top)',
+        bgcolor: 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : undefined;
+  const mobileFormDialogContentSx = isMobile ? { flex: 1, pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
   const mobileFormDialogActionsSx = isMobile
     ? {
         position: 'sticky',
         bottom: 0,
         zIndex: 1,
+        mt: 'auto',
         borderTop: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -348,7 +358,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleAdd}>
+        <Box component="form" onSubmit={handleAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add note</DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
@@ -379,7 +389,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSaveEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
+        <Box component="form" onSubmit={handleSaveEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>

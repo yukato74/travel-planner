@@ -49,12 +49,22 @@ export function TripInfoDialog({
 }: TripInfoDialogProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormBoxSx = isMobile
+    ? {
+        minHeight: '100%',
+        mt: 'env(safe-area-inset-top)',
+        bgcolor: 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : undefined;
+  const mobileFormDialogContentSx = isMobile ? { flex: 1, pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
   const mobileFormDialogActionsSx = isMobile
     ? {
         position: 'sticky',
         bottom: 0,
         zIndex: 1,
+        mt: 'auto',
         borderTop: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -205,7 +215,7 @@ export function TripInfoDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleSubmit} sx={mobileFormBoxSx}>
         <DialogTitle>Edit trip info</DialogTitle>
         <DialogContent sx={mobileFormDialogContentSx}>
           <Stack spacing={1.5} mt={0.5}>

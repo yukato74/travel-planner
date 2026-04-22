@@ -365,12 +365,22 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [sharedOrderLoaded, setSharedOrderLoaded] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormBoxSx = isMobile
+    ? {
+        minHeight: '100%',
+        mt: 'env(safe-area-inset-top)',
+        bgcolor: 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+      }
+    : undefined;
+  const mobileFormDialogContentSx = isMobile ? { flex: 1, pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
   const mobileFormDialogActionsSx = isMobile
     ? {
         position: 'sticky',
         bottom: 0,
         zIndex: 1,
+        mt: 'auto',
         borderTop: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -1224,7 +1234,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleSubmitAdd}>
+        <Box component="form" onSubmit={handleSubmitAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add place</DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
@@ -1283,7 +1293,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSubmitEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
+        <Box component="form" onSubmit={handleSubmitEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit place</DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
