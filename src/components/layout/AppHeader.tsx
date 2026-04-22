@@ -175,9 +175,14 @@ export function AppHeader() {
         color="default"
         elevation={0}
         sx={{
+          top: 0,
+          zIndex: theme.zIndex.appBar,
           borderBottom: '1px solid',
           borderColor: alpha(theme.palette.primary.main, 0.24),
           bgcolor: '#fff',
+          backgroundImage: 'none',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
         }}
       >
         <Toolbar sx={{ px: { xs: 2, sm: 3, md: 4 } }}>

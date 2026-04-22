@@ -26,9 +26,27 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif' }}>
         <AppProviders>
-          <div style={{ backgroundColor: '#F5F7FA', minHeight: '100vh' }}>
+          <div
+            style={{
+              backgroundColor: '#F5F7FA',
+              height: '100dvh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
             <AppHeader />
-            {children}
+            <main
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'contain',
+              }}
+            >
+              {children}
+            </main>
           </div>
         </AppProviders>
       </body>
