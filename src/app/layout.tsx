@@ -29,20 +29,15 @@ export default function RootLayout({
           <div
             style={{
               backgroundColor: '#F5F7FA',
-              height: '100dvh',
+              minHeight: '100dvh',
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
             }}
           >
             <AppHeader />
             <main
               style={{
                 flex: 1,
-                minHeight: 0,
-                overflowY: 'auto',
-                WebkitOverflowScrolling: 'touch',
-                overscrollBehaviorY: 'contain',
               }}
             >
               {children}
