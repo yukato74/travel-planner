@@ -25,7 +25,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
@@ -409,9 +409,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   };
   const modalDeleteIconButtonSx = {
     color: 'error.main',
-    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
-    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
-    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+    bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
   const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);

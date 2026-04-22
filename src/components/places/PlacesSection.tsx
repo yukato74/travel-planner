@@ -43,7 +43,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
@@ -397,9 +397,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   };
   const modalDeleteIconButtonSx = {
     color: 'error.main',
-    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
-    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
-    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+    bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
 
   const sensors = useSensors(

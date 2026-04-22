@@ -22,7 +22,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -89,9 +89,9 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
   };
   const modalDeleteIconButtonSx = {
     color: 'error.main',
-    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
-    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
-    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+    bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
 
   const loadNotes = useCallback(async () => {

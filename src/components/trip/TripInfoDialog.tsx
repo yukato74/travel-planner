@@ -18,7 +18,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, useEffect, useState } from 'react';
 import { deleteTrip, leaveTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
@@ -83,9 +83,9 @@ export function TripInfoDialog({
   };
   const modalDeleteIconButtonSx = {
     color: 'error.main',
-    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
-    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
-    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+    bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
