@@ -296,6 +296,8 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
       return next;
     });
     setDeletingNote(null);
+    setEditingNote(null);
+    setEditFromPreview(false);
   };
 
   const closeEditNote = () => {
@@ -483,8 +485,6 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
                   sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingNote(editingNote);
-                    setEditingNote(null);
-                    setEditFromPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />

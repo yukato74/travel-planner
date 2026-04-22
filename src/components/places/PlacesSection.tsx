@@ -958,6 +958,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     }
 
     setDeletingPlace(null);
+    setEditingPlace(null);
+    setEditFromPreview(false);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -1410,8 +1412,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
                   sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingPlace(editingPlace);
-                    setEditingPlace(null);
-                    setEditFromPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />

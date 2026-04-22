@@ -784,6 +784,10 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return next;
     });
     setDeletingFlight(null);
+    setEditingFlight(null);
+    setEditFlightArrivalTouched(true);
+    setEditFlightFromPreview(false);
+    setEditFlightFromItineraryPreview(false);
   };
 
   const handleAddHotel = async (event: FormEvent<HTMLFormElement>) => {
@@ -895,6 +899,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return next;
     });
     setDeletingHotel(null);
+    setEditingHotel(null);
+    setEditHotelFromPreview(false);
+    setEditHotelFromItineraryPreview(false);
   };
 
   if (loading) {
@@ -1273,10 +1280,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingFlight(editingFlight);
-                    setEditingFlight(null);
-                    setEditFlightArrivalTouched(true);
-                    setEditFlightFromPreview(false);
-                    setEditFlightFromItineraryPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
@@ -1421,9 +1424,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingHotel(editingHotel);
-                    setEditingHotel(null);
-                    setEditHotelFromPreview(false);
-                    setEditHotelFromItineraryPreview(false);
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
