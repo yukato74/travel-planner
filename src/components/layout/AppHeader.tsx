@@ -161,11 +161,11 @@ export function AppHeader() {
         }}
       >
         <Toolbar sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <IconButton aria-label="Open menu" edge="start" onClick={() => setDrawerOpen(true)}>
+          <IconButton aria-label="Open menu" onClick={() => setDrawerOpen(true)} sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
 
-          <Box sx={{ ml: 1, flex: 1, minWidth: 0 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h6" fontWeight={700} noWrap>
               {currentTitle}
             </Typography>
