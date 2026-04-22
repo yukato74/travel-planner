@@ -3,7 +3,6 @@
 import MenuIcon from '@mui/icons-material/Menu';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
-import LoginIcon from '@mui/icons-material/Login';
 import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -52,7 +51,6 @@ export function AppHeader() {
   const currentTripId = useMemo(() => getCurrentTripId(pathname), [pathname]);
   const currentTrip = useMemo(() => trips.find((trip) => trip.id === currentTripId) ?? null, [trips, currentTripId]);
   const currentTitle = currentTrip?.title ?? (currentTripId === viewingTripId ? viewingTripTitle : null) ?? 'Travel Planner';
-  const showHeaderLogin = !userId && pathname !== '/';
 
   const loadTrips = useCallback(async (ownerId: string) => {
     if (isOffline) {
@@ -202,15 +200,9 @@ export function AppHeader() {
               size="small"
               color="warning"
               variant="outlined"
-              sx={{ mr: showHeaderLogin ? 1 : 0 }}
+              sx={{ mr: 0 }}
             />
           )}
-
-          {!userId && showHeaderLogin ? (
-            <Button href="/login" startIcon={<LoginIcon />} size="small">
-              Login
-            </Button>
-          ) : null}
         </Toolbar>
       </AppBar>
       <Toolbar />
@@ -294,11 +286,7 @@ export function AppHeader() {
               >
                 Logout
               </Button>
-            ) : (
-              <Button href="/login" variant="contained" startIcon={<LoginIcon />} onClick={() => setDrawerOpen(false)}>
-                Login
-              </Button>
-            )}
+            ) : null}
           </Stack>
         </Stack>
       </Drawer>

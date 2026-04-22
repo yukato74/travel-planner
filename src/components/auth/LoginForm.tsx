@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 
 type LoginFormProps = {
@@ -21,24 +21,36 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const [otpCode, setOtpCode] = useState('');
   const [isOtpStep, setIsOtpStep] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
+
+  const actionButtonSx = { minHeight: 40 };
 
   const sendOtpCode = async () => {
+    const requestId = ++requestIdRef.current;
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsRedirecting(false);
 
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
-      setErrorMessage(error);
+      if (requestId === requestIdRef.current) {
+        setErrorMessage(error);
+      }
       return false;
     }
 
     setLoading(true);
 
     const { error: signInError } = await client.auth.signInWithOtp({
-      email,
+      email: email.trim(),
     });
+
+    if (requestId !== requestIdRef.current) {
+      return false;
+    }
 
     setLoading(false);
 
@@ -64,22 +76,30 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
   const handleVerifyOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const requestId = ++requestIdRef.current;
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsRedirecting(false);
 
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
-      setErrorMessage(error);
+      if (requestId === requestIdRef.current) {
+        setErrorMessage(error);
+      }
       return;
     }
 
     setLoading(true);
 
     const { error: verifyError } = await client.auth.verifyOtp({
-      email,
-      token: otpCode,
+      email: email.trim(),
+      token: otpCode.trim(),
       type: 'email',
     });
+
+    if (requestId !== requestIdRef.current) {
+      return;
+    }
 
     setLoading(false);
 
@@ -88,9 +108,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
+    setIsRedirecting(true);
     setSuccessMessage('Signed in successfully.');
-    router.push(nextPath);
-    router.refresh();
+    router.replace(nextPath);
   };
 
   return (
@@ -103,7 +123,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           {isOtpStep ? 'Enter the 6-digit verification code sent to your email.' : 'Enter your email to receive a 6-digit verification code.'}
         </Typography>
 
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && !isRedirecting && <Alert severity="error">{errorMessage}</Alert>}
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
         <TextField
@@ -128,20 +148,24 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           />
         )}
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="space-between">
-          <Button component={Link} href="/" variant="text">
+        <Stack spacing={1.25}>
+          <Button component={Link} href="/" variant="outlined" fullWidth sx={actionButtonSx} disabled={loading || isRedirecting}>
             Back
           </Button>
-          <Stack direction="row" spacing={1.5}>
-            {isOtpStep && (
-              <Button type="button" variant="text" disabled={loading} onClick={handleResendClick}>
-                Resend code
-              </Button>
-            )}
-            <Button type="submit" variant="contained" disabled={loading || (isOtpStep && otpCode.length !== 6)}>
-              {loading ? (isOtpStep ? 'Verifying...' : 'Sending...') : isOtpStep ? 'Verify Code' : 'Send Code'}
+          {isOtpStep && (
+            <Button type="button" variant="outlined" fullWidth sx={actionButtonSx} disabled={loading || isRedirecting} onClick={handleResendClick}>
+              Resend code
             </Button>
-          </Stack>
+          )}
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            sx={actionButtonSx}
+            disabled={loading || isRedirecting || (isOtpStep && otpCode.length !== 6)}
+          >
+            {loading ? (isOtpStep ? 'Verifying...' : 'Sending...') : isOtpStep ? 'Verify Code' : 'Send Code'}
+          </Button>
         </Stack>
       </Stack>
     </Paper>
