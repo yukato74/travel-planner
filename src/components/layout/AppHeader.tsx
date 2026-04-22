@@ -253,7 +253,7 @@ export function AppHeader() {
                 color="inherit"
                 startIcon={<LogoutIcon />}
                 onClick={handleLogout}
-                sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}
+                sx={{ justifyContent: 'center', color: 'text.secondary' }}
               >
                 Logout
               </Button>
