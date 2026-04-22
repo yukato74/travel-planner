@@ -14,11 +14,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Session } from '@supabase/supabase-js';
 import { useCallback, useEffect, useState } from 'react';
+import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
 import { PlacesSection } from '@/components/places/PlacesSection';
 import { FlightsHotelsTab } from '@/components/trip/FlightsHotelsTab';
 import { NotesTab } from '@/components/trip/NotesTab';
 import { TripInfoDialog } from '@/components/trip/TripInfoDialog';
 import { enumerateDateRange } from '@/lib/date';
+import { getCachedTrip, getCachedTripList, isLikelyOfflineError, setCachedTrip } from '@/lib/offline/cache';
 import { getTripAccessStorageKey, requiresSharePassword, verifySharePassword } from '@/lib/share/access';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { addTripMember, buildTripShareUrl, getTripById, isInvitedTripMember, listTrips } from '@/lib/trips/service';
@@ -30,6 +32,7 @@ type TripDetailViewProps = {
 
 export function TripDetailView({ tripId }: TripDetailViewProps) {
   const router = useRouter();
+  const { isOffline } = useOfflineStatus();
   const [trip, setTrip] = useState<TripSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -49,6 +52,17 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     setErrorMessage(null);
     setNotFound(false);
 
+    if (isOffline) {
+      const cachedTrip = getCachedTrip(tripId);
+      if (cachedTrip) {
+        setTrip(cachedTrip);
+      } else {
+        setNotFound(true);
+      }
+      setLoading(false);
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setLoading(false);
@@ -58,6 +72,15 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
 
     const tripResult = await getTripById(client, tripId);
     if (tripResult.error) {
+      if (isLikelyOfflineError(tripResult.error)) {
+        const cachedTrip = getCachedTrip(tripId);
+        if (cachedTrip) {
+          setTrip(cachedTrip);
+          setErrorMessage('Offline mode: showing cached trip data.');
+          setLoading(false);
+          return;
+        }
+      }
       setLoading(false);
       setErrorMessage(tripResult.error);
       return;
@@ -70,8 +93,9 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     }
 
     setTrip(tripResult.data);
+    setCachedTrip(tripResult.data);
     setLoading(false);
-  }, [tripId]);
+  }, [isOffline, tripId]);
 
   useEffect(() => {
     void loadTripData();
@@ -221,6 +245,10 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     if (!trip) {
       return;
     }
+    if (isOffline) {
+      setUnlockErrorMessage('Unlock is unavailable while offline.');
+      return;
+    }
 
     if (verifySharePassword(trip, inputPassword)) {
       setIsUnlocked(true);
@@ -250,6 +278,11 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   };
 
   const handleDeletedTrip = async (deletedTripId: string) => {
+    if (isOffline) {
+      router.push('/dashboard');
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
@@ -264,6 +297,14 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
 
     const result = await listTrips(client, viewerUserId);
     if (result.error) {
+      if (isLikelyOfflineError(result.error)) {
+        const cachedTrips = getCachedTripList(viewerUserId);
+        const nextCachedTrip = cachedTrips.find((item) => item.id !== deletedTripId) ?? null;
+        if (nextCachedTrip) {
+          router.push(`/trip/${nextCachedTrip.id}`);
+          return;
+        }
+      }
       setErrorMessage(result.error);
       router.push('/dashboard');
       return;
@@ -316,13 +357,14 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
   const dateOptions = enumerateDateRange(trip.startDate, trip.endDate);
   const isOwner = Boolean(viewerUserId && trip.ownerUserId === viewerUserId);
   const needsPasswordGate = needsPassword && !isOwner;
-  const canEdit = isOwner || isInvited || (needsPassword && isUnlocked);
+  const canEdit = !isOffline && (isOwner || isInvited || (needsPassword && isUnlocked));
   const shareUrl = buildTripShareUrl(trip.id);
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
       <Stack spacing={2}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {isOffline && <Alert severity="info">Offline mode: read-only view.</Alert>}
 
         {needsPasswordGate && !isUnlocked ? (
           <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
@@ -341,7 +383,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
                 error={Boolean(unlockErrorMessage)}
                 helperText={unlockErrorMessage || 'Use 6 alphanumeric characters'}
               />
-              <Button variant="contained" onClick={handleUnlock}>
+              <Button variant="contained" onClick={handleUnlock} disabled={isOffline}>
                 Unlock
               </Button>
             </Stack>
@@ -383,10 +425,14 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
           shareUrl={shareUrl}
           showShareInfo={isOwner}
           viewerUserId={viewerUserId}
-          canDeleteTrip={isOwner}
-          canLeaveTrip={isInvited}
+          canDeleteTrip={!isOffline && isOwner}
+          canLeaveTrip={!isOffline && isInvited}
+          canEdit={!isOffline && isOwner}
           onClose={() => setIsInfoOpen(false)}
-          onUpdated={(updatedTrip) => setTrip(updatedTrip)}
+          onUpdated={(updatedTrip) => {
+            setTrip(updatedTrip);
+            setCachedTrip(updatedTrip);
+          }}
           onRemoved={handleDeletedTrip}
         />
       </Stack>

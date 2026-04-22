@@ -3,6 +3,8 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ReactNode } from 'react';
+import { OfflineStatusProvider } from '@/components/providers/OfflineStatusProvider';
+import { PwaInitializer } from '@/components/providers/PwaInitializer';
 import ThemeRegistry from '@/components/providers/ThemeRegistry';
 
 const theme = createTheme({
@@ -71,7 +73,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeRegistry>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <OfflineStatusProvider>
+          <PwaInitializer />
+          {children}
+        </OfflineStatusProvider>
       </ThemeProvider>
     </ThemeRegistry>
   );

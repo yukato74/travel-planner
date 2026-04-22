@@ -20,7 +20,9 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
 import { formatDisplayDateRange } from '@/lib/date';
+import { getCachedTripList, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { createTrip, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -30,6 +32,7 @@ type DashboardClientProps = {
 };
 
 export function DashboardClient({ userId }: DashboardClientProps) {
+  const { isOffline } = useOfflineStatus();
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -44,6 +47,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     setLoading(true);
     setErrorMessage(null);
 
+    if (isOffline) {
+      setTrips(getCachedTripList(userId));
+      setLoading(false);
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setLoading(false);
@@ -52,10 +61,25 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     }
 
     const result = await listTrips(client, userId);
+
+    if (!result.error) {
+      setTrips(result.data);
+      setCachedTripList(userId, result.data);
+      setLoading(false);
+      return;
+    }
+
+    if (isLikelyOfflineError(result.error)) {
+      setTrips(getCachedTripList(userId));
+      setErrorMessage('Offline mode: showing cached trips.');
+      setLoading(false);
+      return;
+    }
+
     setTrips(result.data);
     setErrorMessage(result.error);
     setLoading(false);
-  }, [userId]);
+  }, [isOffline, userId]);
 
   useEffect(() => {
     void loadTrips();
@@ -64,6 +88,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const handleCreateTrip = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
+
+    if (isOffline) {
+      setErrorMessage('Offline mode: creating trips is disabled.');
+      return;
+    }
 
     if (!title || !startDate || !endDate) {
       setErrorMessage('Please fill in title, start date, and end date.');
@@ -96,7 +125,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       return;
     }
 
-    setTrips((prev) => [result.data!, ...prev]);
+    setTrips((prev) => {
+      const next = [result.data!, ...prev];
+      setCachedTripList(userId, next);
+      return next;
+    });
     setTitle('');
     setStartDate('');
     setEndDate('');
@@ -128,6 +161,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                   onChange={(event) => setTitle(event.target.value)}
                   fullWidth
                   required
+                  disabled={isOffline}
                 />
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
@@ -139,6 +173,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                   slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   required
+                  disabled={isOffline}
                 />
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
@@ -150,6 +185,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                   slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                   required
+                  disabled={isOffline}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 2 }}>
@@ -158,6 +194,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                     <Switch
                       checked={isShareProtected}
                       onChange={(event) => setIsShareProtected(event.target.checked)}
+                      disabled={isOffline}
                     />
                   }
                   label="Protected"
@@ -166,13 +203,14 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             </Grid>
 
             <Stack direction="row" justifyContent="flex-end">
-              <Button type="submit" variant="contained" startIcon={<AddIcon />} disabled={saving}>
+              <Button type="submit" variant="contained" startIcon={<AddIcon />} disabled={saving || isOffline}>
                 {saving ? 'Saving...' : 'Save trip'}
               </Button>
             </Stack>
           </Stack>
         </Paper>
 
+        {isOffline && <Alert severity="info">Offline mode: read-only view.</Alert>}
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {loading ? (

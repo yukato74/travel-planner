@@ -30,6 +30,7 @@ type TripInfoDialogProps = {
   shareUrl: string;
   showShareInfo?: boolean;
   viewerUserId: string | null;
+  canEdit?: boolean;
   canDeleteTrip: boolean;
   canLeaveTrip: boolean;
   onClose: () => void;
@@ -43,6 +44,7 @@ export function TripInfoDialog({
   shareUrl,
   showShareInfo = false,
   viewerUserId,
+  canEdit = true,
   canDeleteTrip,
   canLeaveTrip,
   onClose,
@@ -135,6 +137,9 @@ export function TripInfoDialog({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
 
     if (!title.trim() || !startDate || !endDate) {
       setErrorMessage('Title, start date, and end date are required.');
@@ -182,6 +187,9 @@ export function TripInfoDialog({
   };
 
   const handleDeleteTrip = async () => {
+    if (!canEdit) {
+      return;
+    }
     if (!viewerUserId) {
       setErrorMessage('Failed to identify the current user.');
       return;
@@ -211,6 +219,9 @@ export function TripInfoDialog({
   };
 
   const handleLeaveTrip = async () => {
+    if (!canEdit) {
+      return;
+    }
     if (!viewerUserId) {
       setErrorMessage('Failed to identify the current user.');
       return;
@@ -245,7 +256,7 @@ export function TripInfoDialog({
         <DialogTitle sx={{ position: 'relative' }}>
           Edit trip info
           <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
-            {(canDeleteTrip || canLeaveTrip) && (
+            {canEdit && (canDeleteTrip || canLeaveTrip) && (
               <IconButton
                 aria-label={canDeleteTrip ? 'Delete trip' : 'Leave trip'}
                 color="inherit"
@@ -266,7 +277,7 @@ export function TripInfoDialog({
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             {copiedMessage && <Alert severity="success">{copiedMessage}</Alert>}
 
-            <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
+            <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth disabled={!canEdit} />
 
             <TextField
               label="Start date"
@@ -276,6 +287,7 @@ export function TripInfoDialog({
               slotProps={{ inputLabel: { shrink: true } }}
               required
               fullWidth
+              disabled={!canEdit}
             />
 
             <TextField
@@ -286,10 +298,11 @@ export function TripInfoDialog({
               slotProps={{ inputLabel: { shrink: true } }}
               required
               fullWidth
+              disabled={!canEdit}
             />
 
             <FormControlLabel
-              control={<Switch checked={isShareProtected} onChange={(event) => setIsShareProtected(event.target.checked)} />}
+              control={<Switch checked={isShareProtected} onChange={(event) => setIsShareProtected(event.target.checked)} disabled={!canEdit} />}
               label="Share protection"
             />
 
@@ -339,13 +352,13 @@ export function TripInfoDialog({
           </Stack>
         </DialogContent>
         <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
-          <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving}>
+          <Button type="submit" variant="contained" size="large" sx={saveButtonSx} disabled={saving || !canEdit}>
             {saving ? 'Saving...' : 'Save'}
           </Button>
         </DialogActions>
       </Box>
 
-      <Dialog open={confirmActionOpen} onClose={() => setConfirmActionOpen(false)} fullWidth maxWidth="xs">
+      <Dialog open={canEdit && confirmActionOpen} onClose={() => setConfirmActionOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle>{canDeleteTrip ? 'Delete trip' : 'Leave trip'}</DialogTitle>
         <DialogContent>
           <Stack spacing={1}>

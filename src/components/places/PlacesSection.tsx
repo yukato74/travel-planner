@@ -49,6 +49,7 @@ import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
 import { listHotelsByTripId } from '@/lib/hotels/service';
+import { getCachedFlights, getCachedHotels, getCachedPlaces, isLikelyOfflineError, setCachedFlights, setCachedHotels, setCachedPlaces } from '@/lib/offline/cache';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { getTripItineraryOrder, updateTripItineraryOrder } from '@/lib/trips/service';
@@ -526,6 +527,14 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setSharedOrderLoaded(false);
     setErrorMessage(null);
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setPlaces(getCachedPlaces(tripId));
+      setFlights(getCachedFlights(tripId));
+      setHotels(getCachedHotels(tripId));
+      setLoading(false);
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
@@ -542,9 +551,28 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setPlaces(placesResult.data);
     setFlights(flightsResult.data);
     setHotels(hotelsResult.data);
+    if (!placesResult.error) {
+      setCachedPlaces(tripId, placesResult.data);
+    }
+    if (!flightsResult.error) {
+      setCachedFlights(tripId, flightsResult.data);
+    }
+    if (!hotelsResult.error) {
+      setCachedHotels(tripId, hotelsResult.data);
+    }
     setDayItemOrderByDay(orderResult.data);
     setSharedOrderLoaded(true);
-    setErrorMessage([placesResult.error, flightsResult.error, hotelsResult.error, orderResult.error].filter(Boolean).join(' ') || null);
+    const joinedError = [placesResult.error, flightsResult.error, hotelsResult.error, orderResult.error].filter(Boolean).join(' ');
+    if (joinedError && isLikelyOfflineError(joinedError)) {
+      setPlaces(getCachedPlaces(tripId));
+      setFlights(getCachedFlights(tripId));
+      setHotels(getCachedHotels(tripId));
+      setErrorMessage('Offline mode: showing cached itinerary data.');
+      setLoading(false);
+      return;
+    }
+
+    setErrorMessage(joinedError || null);
     setLoading(false);
   }, [tripId]);
 
@@ -653,7 +681,11 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       return;
     }
 
-    setPlaces((prev) => [...prev, result.data!]);
+    setPlaces((prev) => {
+      const next = [...prev, result.data!];
+      setCachedPlaces(tripId, next);
+      return next;
+    });
     setAddName('');
     setAddAddress('');
     setAddMemo('');
@@ -867,6 +899,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     }
 
     setPlaces(nextPlaces);
+    setCachedPlaces(tripId, nextPlaces);
     const success = await persistReorder(reorderUpdates);
     setSaving(false);
 
@@ -908,6 +941,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     const nextPlaces = remaining.map((place) => ordered.find((item) => item.id === place.id) ?? place);
     setPlaces(nextPlaces);
+    setCachedPlaces(tripId, nextPlaces);
 
     const reorderUpdates = ordered.map((place) => ({
       id: place.id,
@@ -1028,6 +1062,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
     const nextPlaces = Array.from(placeMap.values());
     setPlaces(nextPlaces);
+    setCachedPlaces(tripId, nextPlaces);
     setSaving(true);
     const success = await persistReorder(updates);
     setSaving(false);

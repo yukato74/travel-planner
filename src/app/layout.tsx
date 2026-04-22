@@ -6,6 +6,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Travel Planner',
   description: 'Travel Planner built with Next.js App Router and MUI',
+  manifest: '/manifest.webmanifest',
   themeColor: '#F5F7FA',
 };
 

@@ -30,6 +30,7 @@ import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, u
 import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
+import { getCachedFlights, getCachedHotels, isLikelyOfflineError, setCachedFlights, setCachedHotels } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Flight, Hotel } from '@/lib/types/trip';
 
@@ -553,6 +554,13 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     setLoading(true);
     setErrorMessage(null);
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setFlights(getCachedFlights(tripId));
+      setHotels(getCachedHotels(tripId));
+      setLoading(false);
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
@@ -564,10 +572,27 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
     setFlights(flightResult.data);
     setHotels(hotelResult.data);
+    if (!flightResult.error) {
+      setCachedFlights(tripId, flightResult.data);
+    }
+    if (!hotelResult.error) {
+      setCachedHotels(tripId, hotelResult.data);
+    }
     setLoading(false);
 
     const errors = [flightResult.error, hotelResult.error].filter(Boolean);
-    setErrorMessage(errors.length > 0 ? errors.join(' ') : null);
+    if (errors.length > 0) {
+      const errorText = errors.join(' ');
+      if (isLikelyOfflineError(errorText)) {
+        setFlights(getCachedFlights(tripId));
+        setHotels(getCachedHotels(tripId));
+        setErrorMessage('Offline mode: showing cached booking data.');
+        return;
+      }
+      setErrorMessage(errorText);
+      return;
+    }
+    setErrorMessage(null);
   }, [tripId]);
 
   useEffect(() => {
@@ -637,6 +662,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
   const handleAddFlight = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
     if (!addFlight.airline || !addFlight.flightNumber || !addFlight.departureTime || !addFlight.arrivalTime) {
       setErrorMessage('Please fill in the required flight fields.');
       return;
@@ -668,7 +696,11 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setFlights((prev) => [...prev, result.data!].sort((a, b) => a.departureTime.localeCompare(b.departureTime)));
+    setFlights((prev) => {
+      const next = [...prev, result.data!].sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+      setCachedFlights(tripId, next);
+      return next;
+    });
     setAddFlight({
       airline: '',
       flightNumber: '',
@@ -684,7 +716,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
   const handleSaveFlight = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingFlight) {
+    if (!canEdit || !editingFlight) {
       return;
     }
 
@@ -714,7 +746,11 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setFlights((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
+    setFlights((prev) => {
+      const next = prev.map((item) => (item.id === result.data!.id ? result.data! : item));
+      setCachedFlights(tripId, next);
+      return next;
+    });
     setEditFlightArrivalTouched(true);
     setEditingFlight(null);
     setEditFlightFromPreview(false);
@@ -722,7 +758,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   };
 
   const handleDeleteFlight = async () => {
-    if (!deletingFlight) {
+    if (!canEdit || !deletingFlight) {
       return;
     }
 
@@ -741,12 +777,19 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setFlights((prev) => prev.filter((item) => item.id !== deletingFlight.id));
+    setFlights((prev) => {
+      const next = prev.filter((item) => item.id !== deletingFlight.id);
+      setCachedFlights(tripId, next);
+      return next;
+    });
     setDeletingFlight(null);
   };
 
   const handleAddHotel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
     if (!addHotel.name || !addHotel.checkInDate || !addHotel.checkOutDate) {
       setErrorMessage('Please fill in the required hotel fields.');
       return;
@@ -776,14 +819,18 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setHotels((prev) => [...prev, result.data!].sort((a, b) => a.checkInDate.localeCompare(b.checkInDate)));
+    setHotels((prev) => {
+      const next = [...prev, result.data!].sort((a, b) => a.checkInDate.localeCompare(b.checkInDate));
+      setCachedHotels(tripId, next);
+      return next;
+    });
     setAddHotel({ name: '', address: '', checkInDate: '', checkOutDate: '', memo: '' });
     setAddHotelOpen(false);
   };
 
   const handleSaveHotel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingHotel) {
+    if (!canEdit || !editingHotel) {
       return;
     }
 
@@ -811,14 +858,18 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setHotels((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
+    setHotels((prev) => {
+      const next = prev.map((item) => (item.id === result.data!.id ? result.data! : item));
+      setCachedHotels(tripId, next);
+      return next;
+    });
     setEditingHotel(null);
     setEditHotelFromPreview(false);
     setEditHotelFromItineraryPreview(false);
   };
 
   const handleDeleteHotel = async () => {
-    if (!deletingHotel) {
+    if (!canEdit || !deletingHotel) {
       return;
     }
 
@@ -837,7 +888,11 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       return;
     }
 
-    setHotels((prev) => prev.filter((item) => item.id !== deletingHotel.id));
+    setHotels((prev) => {
+      const next = prev.filter((item) => item.id !== deletingHotel.id);
+      setCachedHotels(tripId, next);
+      return next;
+    });
     setDeletingHotel(null);
   };
 

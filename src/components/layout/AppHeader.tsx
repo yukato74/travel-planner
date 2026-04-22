@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
@@ -21,8 +22,10 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
 import { formatDisplayDateRange } from '@/lib/date';
+import { getCachedTripList, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -36,6 +39,7 @@ export function AppHeader() {
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const { isOffline } = useOfflineStatus();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loadingTrips, setLoadingTrips] = useState(false);
@@ -50,7 +54,12 @@ export function AppHeader() {
   const currentTitle = currentTrip?.title ?? (currentTripId === viewingTripId ? viewingTripTitle : null) ?? 'Travel Planner';
   const showHeaderLogin = !userId && pathname !== '/';
 
-  const loadTrips = async (ownerId: string) => {
+  const loadTrips = useCallback(async (ownerId: string) => {
+    if (isOffline) {
+      setTrips(getCachedTripList(ownerId));
+      return;
+    }
+
     const { client } = getSupabaseBrowserClient();
     if (!client) {
       return;
@@ -58,9 +67,20 @@ export function AppHeader() {
 
     setLoadingTrips(true);
     const result = await listTrips(client, ownerId);
-    setTrips(result.data);
+    if (!result.error) {
+      setTrips(result.data);
+      setCachedTripList(ownerId, result.data);
+      setLoadingTrips(false);
+      return;
+    }
+
+    if (isLikelyOfflineError(result.error)) {
+      setTrips(getCachedTripList(ownerId));
+    } else {
+      setTrips(result.data);
+    }
     setLoadingTrips(false);
-  };
+  }, [isOffline]);
 
   useEffect(() => {
     const { client } = getSupabaseBrowserClient();
@@ -107,7 +127,7 @@ export function AppHeader() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadTrips]);
 
   useEffect(() => {
     const handleTripContext = (event: Event) => {
@@ -170,6 +190,16 @@ export function AppHeader() {
               {currentTitle}
             </Typography>
           </Box>
+
+          {isOffline && (
+            <Chip
+              label="Offline"
+              size="small"
+              color="warning"
+              variant="outlined"
+              sx={{ mr: showHeaderLogin ? 1 : 0 }}
+            />
+          )}
 
           {!userId && showHeaderLogin ? (
             <Button href="/login" startIcon={<LoginIcon />} size="small">
@@ -243,6 +273,7 @@ export function AppHeader() {
               variant="outlined"
               startIcon={<AddIcon />}
               onClick={() => setDrawerOpen(false)}
+              disabled={isOffline}
             >
               New Trip
             </Button>

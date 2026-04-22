@@ -25,6 +25,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
+import { getCachedNotes, isLikelyOfflineError, setCachedNotes } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Note } from '@/lib/types/trip';
 
@@ -100,6 +101,12 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     setLoading(true);
     setErrorMessage(null);
 
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setNotes(getCachedNotes(tripId));
+      setLoading(false);
+      return;
+    }
+
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
@@ -108,6 +115,21 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     }
 
     const result = await listNotesByTripId(client, tripId);
+    if (!result.error) {
+      setNotes(result.data);
+      setCachedNotes(tripId, result.data);
+      setErrorMessage(null);
+      setLoading(false);
+      return;
+    }
+
+    if (isLikelyOfflineError(result.error)) {
+      setNotes(getCachedNotes(tripId));
+      setErrorMessage('Offline mode: showing cached notes.');
+      setLoading(false);
+      return;
+    }
+
     setNotes(result.data);
     setErrorMessage(result.error);
     setLoading(false);
@@ -163,6 +185,9 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const handleAdd = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
 
     if (!title.trim() || !content.trim()) {
       setErrorMessage('Title and content are required.');
@@ -191,7 +216,11 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       return;
     }
 
-    setNotes((prev) => [...prev, result.data!]);
+    setNotes((prev) => {
+      const next = [...prev, result.data!];
+      setCachedNotes(tripId, next);
+      return next;
+    });
     setTitle('');
     setContent('');
     setAddOpen(false);
@@ -199,7 +228,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const handleSaveEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingNote) {
+    if (!canEdit || !editingNote) {
       return;
     }
 
@@ -230,13 +259,17 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       return;
     }
 
-    setNotes((prev) => prev.map((item) => (item.id === result.data!.id ? result.data! : item)));
+    setNotes((prev) => {
+      const next = prev.map((item) => (item.id === result.data!.id ? result.data! : item));
+      setCachedNotes(tripId, next);
+      return next;
+    });
     setEditingNote(null);
     setEditFromPreview(false);
   };
 
   const handleDelete = async () => {
-    if (!deletingNote) {
+    if (!canEdit || !deletingNote) {
       return;
     }
 
@@ -256,7 +289,11 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       return;
     }
 
-    setNotes((prev) => prev.filter((item) => item.id !== deletingNote.id));
+    setNotes((prev) => {
+      const next = prev.filter((item) => item.id !== deletingNote.id);
+      setCachedNotes(tripId, next);
+      return next;
+    });
     setDeletingNote(null);
   };
 
