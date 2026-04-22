@@ -74,7 +74,20 @@ export function OfflineStatusProvider({ children }: { children: ReactNode }) {
         onClose={() => setShowBackOnlineToast(false)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert onClose={() => setShowBackOnlineToast(false)} severity="success" variant="filled" sx={{ width: '100%' }}>
+        <Alert
+          onClose={() => setShowBackOnlineToast(false)}
+          severity="success"
+          variant="outlined"
+          sx={{
+            width: '100%',
+            color: '#2e7d32',
+            borderColor: '#2e7d32',
+            backgroundColor: '#e8f5e9',
+            '& .MuiAlert-icon': {
+              color: '#2e7d32',
+            },
+          }}
+        >
           Back online.
         </Alert>
       </Snackbar>
