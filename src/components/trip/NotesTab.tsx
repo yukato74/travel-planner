@@ -3,7 +3,9 @@
 import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -293,13 +295,13 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                       {canEdit && (
                         <IconButton
                           size="small"
-                          aria-label="Delete"
+                          aria-label="Edit"
                           onClick={(event) => {
                             event.stopPropagation();
-                            setDeletingNote(note);
+                            setEditingNote(note);
                           }}
                         >
-                          <DeleteOutlineIcon fontSize="small" />
+                          <EditOutlinedIcon fontSize="small" />
                         </IconButton>
                       )}
                     </Stack>
@@ -328,18 +330,17 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewNote && (
-              <Button
-                variant="outlined"
+              <IconButton
                 color="inherit"
-                size="small"
+                aria-label="Edit"
                 onClick={() => {
                   previewNoteHistoryPushedRef.current = false;
                   setEditingNote(previewNote);
                   setPreviewNote(null);
                 }}
               >
-                Edit
-              </Button>
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
             )}
           </Stack>
           <Typography variant="h5" fontWeight={700} mt={1}>
@@ -359,7 +360,14 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAdd} sx={mobileFormBoxSx}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Add note</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
+            Add note
+            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+              <IconButton aria-label="Close" onClick={() => setAddOpen(false)} color="inherit">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
@@ -374,9 +382,8 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               />
             </Stack>
           </DialogContent>
-          <DialogActions sx={mobileFormDialogActionsSx}>
-            <Button onClick={() => setAddOpen(false)} color="inherit">Cancel</Button>
-            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Add note'}</Button>
+          <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
+            <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>
       </Dialog>
@@ -390,7 +397,26 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box component="form" onSubmit={handleSaveEdit} sx={mobileFormBoxSx}>
-          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
+            Edit note
+            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+              {editingNote && (
+                <IconButton
+                  aria-label="Delete"
+                  color="inherit"
+                  onClick={() => {
+                    setDeletingNote(editingNote);
+                    setEditingNote(null);
+                  }}
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              )}
+              <IconButton aria-label="Close" onClick={() => setEditingNote(null)} color="inherit">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField
@@ -411,8 +437,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               />
             </Stack>
           </DialogContent>
-          <DialogActions sx={mobileFormDialogActionsSx}>
-            <Button onClick={() => setEditingNote(null)} color="inherit">Cancel</Button>
+          <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>
         </Box>

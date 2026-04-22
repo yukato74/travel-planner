@@ -17,6 +17,9 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FlightIcon from '@mui/icons-material/Flight';
 import HotelIcon from '@mui/icons-material/Hotel';
 import Alert from '@mui/material/Alert';
@@ -152,7 +155,6 @@ type DaySectionProps = {
   canEdit: boolean;
   onOpenAdd: (date: string) => void;
   onEdit: (place: Place) => void;
-  onDelete: (place: Place) => void;
   onPreviewFlight: (flightId: string) => void;
 };
 
@@ -247,7 +249,6 @@ function DaySection({
   canEdit,
   onOpenAdd,
   onEdit,
-  onDelete,
   onPreviewFlight,
 }: DaySectionProps) {
   const { isOver, setNodeRef } = useDroppable({
@@ -303,7 +304,6 @@ function DaySection({
                         <PlaceItem
                           place={place}
                           onEdit={onEdit}
-                          onDelete={onDelete}
                           disabled={saving}
                           canEdit={canEdit}
                         />
@@ -1014,7 +1014,6 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                 dayLabel={dayMeta.find((item) => item.date === date)?.dayLabel ?? date}
                 shortDate={dayMeta.find((item) => item.date === date)?.shortDate ?? date}
                 onEdit={openPreviewPlace}
-                onDelete={(place) => setDeletingPlace(place)}
                 onPreviewFlight={openPreviewFlight}
               />
               {index < dateOptions.length - 1 && (hotelsByDay.get(date)?.length ?? 0) > 0 && (
@@ -1074,18 +1073,17 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewPlace && (
-              <Button
-                variant="outlined"
+              <IconButton
                 color="inherit"
-                size="small"
+                aria-label="Edit"
                 onClick={() => {
                   previewPlaceHistoryPushedRef.current = false;
                   openEditDialog(previewPlace);
                   setPreviewPlace(null);
                 }}
               >
-                Edit
-              </Button>
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
             )}
           </Stack>
           <Typography variant="h5" fontWeight={700} mt={1}>
@@ -1143,9 +1141,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
-              <Button variant="outlined" color="inherit" size="small" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
-                Edit
-              </Button>
+              <IconButton color="inherit" aria-label="Edit" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
             )}
           </Stack>
           <Typography variant="h5" fontWeight={700} mt={1}>
@@ -1190,9 +1188,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
-              <Button variant="outlined" color="inherit" size="small" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
-                Edit
-              </Button>
+              <IconButton color="inherit" aria-label="Edit" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
+                <EditOutlinedIcon fontSize="small" />
+              </IconButton>
             )}
           </Stack>
           <Typography variant="h5" fontWeight={700} mt={1}>
@@ -1235,7 +1233,14 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitAdd} sx={mobileFormBoxSx}>
-          <DialogTitle sx={{ fontWeight: 700 }}>Add place</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
+            Add place
+            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+              <IconButton aria-label="Close" onClick={() => setAddDate(null)} color="inherit">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
               <TextField
@@ -1274,10 +1279,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               />
             </Stack>
           </DialogContent>
-          <DialogActions sx={mobileFormDialogActionsSx}>
-            <Button onClick={() => setAddDate(null)} color="inherit">
-              Cancel
-            </Button>
+          <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
             <Button type="submit" variant="contained" disabled={saving || !addName.trim()}>
               {saving ? 'Saving...' : 'Save'}
             </Button>
@@ -1294,7 +1296,26 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
         <Box component="form" onSubmit={handleSubmitEdit} sx={mobileFormBoxSx}>
-          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit place</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
+            Edit place
+            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+              {editingPlace && (
+                <IconButton
+                  aria-label="Delete"
+                  color="inherit"
+                  onClick={() => {
+                    setDeletingPlace(editingPlace);
+                    setEditingPlace(null);
+                  }}
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              )}
+              <IconButton aria-label="Close" onClick={() => setEditingPlace(null)} color="inherit">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Stack>
+          </DialogTitle>
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />
@@ -1315,10 +1336,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               />
             </Stack>
           </DialogContent>
-          <DialogActions sx={mobileFormDialogActionsSx}>
-            <Button onClick={() => setEditingPlace(null)} color="inherit">
-              Cancel
-            </Button>
+          <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
             <Button type="submit" variant="contained" disabled={saving || !editName.trim()}>
               {saving ? 'Saving...' : 'Save'}
             </Button>

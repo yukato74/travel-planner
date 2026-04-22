@@ -1,6 +1,5 @@
 'use client';
 
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -14,12 +13,11 @@ import { Place } from '@/lib/types/trip';
 type PlaceItemProps = {
   place: Place;
   onEdit: (place: Place) => void;
-  onDelete: (place: Place) => void;
   disabled?: boolean;
   canEdit?: boolean;
 };
 
-export function PlaceItem({ place, onEdit, onDelete, disabled = false, canEdit = true }: PlaceItemProps) {
+export function PlaceItem({ place, onEdit, disabled = false, canEdit = true }: PlaceItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: place.id,
     data: {
@@ -70,20 +68,6 @@ export function PlaceItem({ place, onEdit, onDelete, disabled = false, canEdit =
             {place.name}
           </Typography>
         </Box>
-
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <IconButton
-            size="small"
-            aria-label="Delete"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete(place);
-            }}
-            disabled={disabled || !canEdit}
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-        </Stack>
       </Stack>
     </ListItem>
   );
