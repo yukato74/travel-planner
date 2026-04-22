@@ -1087,7 +1087,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   href={previewPlace.address}
                   target="_blank"
                   rel="noreferrer noopener"
-                  sx={{ textDecoration: 'underline' }}
+                  sx={{ textDecoration: 'underline', color: 'primary.main' }}
                 >
                   {previewPlace.address}
                 </Typography>
@@ -1186,7 +1186,22 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             <Typography variant="body1" color="text.secondary">
               {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
             </Typography>
-            {previewHotel?.address && <Typography variant="body1">{previewHotel.address}</Typography>}
+            {previewHotel?.address && (
+              isHttpUrl(previewHotel.address) ? (
+                <Typography
+                  variant="body1"
+                  component="a"
+                  href={previewHotel.address}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  sx={{ textDecoration: 'underline', color: 'primary.main' }}
+                >
+                  {previewHotel.address}
+                </Typography>
+              ) : (
+                <Typography variant="body1">{previewHotel.address}</Typography>
+              )
+            )}
             {previewHotel?.memo && (
               <>
                 <Divider />

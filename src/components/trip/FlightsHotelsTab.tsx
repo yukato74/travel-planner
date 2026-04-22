@@ -109,6 +109,10 @@ function formatMonthDayTime(value: string): string {
   return hhmm ? `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum} ${hhmm}` : `${monthLabel} ${Number.isNaN(dayNum) ? day : dayNum}`;
 }
 
+function isHttpUrl(value: string): boolean {
+  return value.startsWith('http://') || value.startsWith('https://');
+}
+
 function normalizeDateTimeLocal(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -886,7 +890,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                     <Typography variant="body2" color="text.secondary">
                       {hotel.checkInDate} - {hotel.checkOutDate}
                     </Typography>
-                    {hotel.address && <Typography variant="body2" color="text.secondary">{hotel.address}</Typography>}
                   </Stack>
                 </Paper>
               ))}
@@ -996,7 +999,22 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             <Typography variant="body1" color="text.secondary">
               {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
             </Typography>
-            {previewHotel?.address && <Typography variant="body1">{previewHotel.address}</Typography>}
+            {previewHotel?.address && (
+              isHttpUrl(previewHotel.address) ? (
+                <Typography
+                  variant="body1"
+                  component="a"
+                  href={previewHotel.address}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  sx={{ textDecoration: 'underline', color: 'primary.main' }}
+                >
+                  {previewHotel.address}
+                </Typography>
+              ) : (
+                <Typography variant="body1">{previewHotel.address}</Typography>
+              )
+            )}
             {previewHotel?.memo && (
               <>
                 <Divider />
@@ -1154,7 +1172,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={addHotel.name} onChange={(e) => setAddHotel((prev) => ({ ...prev, name: e.target.value }))} required />
-              <TextField label="Address" value={addHotel.address} onChange={(e) => setAddHotel((prev) => ({ ...prev, address: e.target.value }))} />
+              <TextField label="Google Maps URL" value={addHotel.address} onChange={(e) => setAddHotel((prev) => ({ ...prev, address: e.target.value }))} />
               <TextField
                 select
                 label="Check-in"
@@ -1212,7 +1230,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
           <DialogContent>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
-              <TextField label="Address" value={editingHotel?.address ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
+              <TextField label="Google Maps URL" value={editingHotel?.address ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
               <TextField
                 select
                 label="Check-in"
