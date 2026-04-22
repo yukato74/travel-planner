@@ -43,12 +43,12 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 
 function formatDateLabel(value: string): string {
   const [datePart] = value.split('T');
-  const [year, month, day] = datePart.split('-');
-  if (!year || !month || !day) {
+  const [, month, day] = datePart.split('-');
+  if (!month || !day) {
     return value;
   }
   const monthLabel = MONTH_LABELS[Number(month) - 1] ?? month;
-  return `${monthLabel} ${Number(day)}, ${year}`;
+  return `${monthLabel} ${Number(day)}`;
 }
 
 function formatTime(value: string): string {
@@ -68,12 +68,14 @@ export function FlightPreviewContent({ flight }: FlightPreviewContentProps) {
             {formatAirportDisplayName(flight.departureAirport)}
           </Typography>
         </Stack>
-        <Typography variant="h4" fontWeight={700} lineHeight={1.15}>
-          {formatTime(flight.departureTime)}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {formatDateLabel(flight.departureTime)}
-        </Typography>
+        <Stack direction="row" spacing={1.25} alignItems="baseline">
+          <Typography variant="h4" fontWeight={700} lineHeight={1.15}>
+            {formatTime(flight.departureTime)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {formatDateLabel(flight.departureTime)}
+          </Typography>
+        </Stack>
       </Stack>
 
       <Stack spacing={0.75}>
@@ -83,12 +85,14 @@ export function FlightPreviewContent({ flight }: FlightPreviewContentProps) {
             {formatAirportDisplayName(flight.arrivalAirport)}
           </Typography>
         </Stack>
-        <Typography variant="h4" fontWeight={700} lineHeight={1.15}>
-          {formatTime(flight.arrivalTime)}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {formatDateLabel(flight.arrivalTime)}
-        </Typography>
+        <Stack direction="row" spacing={1.25} alignItems="baseline">
+          <Typography variant="h4" fontWeight={700} lineHeight={1.15}>
+            {formatTime(flight.arrivalTime)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {formatDateLabel(flight.arrivalTime)}
+          </Typography>
+        </Stack>
       </Stack>
 
       {flight.memo && (
