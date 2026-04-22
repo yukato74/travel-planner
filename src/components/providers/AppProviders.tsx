@@ -21,14 +21,29 @@ const theme = createTheme({
   },
   components: {
     MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
       styleOverrides: {
+        root: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
+          '&:active': {
+            boxShadow: 'none',
+          },
+        },
         containedPrimary: {
           color: '#fff',
+          boxShadow: 'none',
           '&:hover': {
             backgroundColor: '#055BB8',
+            boxShadow: 'none',
           },
           '&:active': {
             backgroundColor: '#044A95',
+            boxShadow: 'none',
           },
         },
       },
