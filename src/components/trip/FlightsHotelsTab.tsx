@@ -26,7 +26,7 @@ import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
-import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
@@ -508,6 +508,17 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     setPreviewFlight(null);
     setPreviewHotel(null);
   }, []);
+
+  const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA') {
+      return;
+    }
+    event.preventDefault();
+  };
 
   const openBookingEdit = useCallback((request: BookingEditRequest) => {
     if (request.kind === 'flight') {
@@ -1127,7 +1138,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         maxWidth="sm"
         fullScreen={isMobile}
       >
-        <Box component="form" onSubmit={handleAddFlight} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleAddFlight} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add flight
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
@@ -1194,7 +1205,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSaveFlight} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleSaveFlight} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit flight
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
@@ -1278,7 +1289,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       </Dialog>
 
       <Dialog open={canEdit && addHotelOpen} onClose={() => setAddHotelOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleAddHotel} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleAddHotel} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add hotel
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
@@ -1342,7 +1353,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSaveHotel} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleSaveHotel} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit hotel
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>

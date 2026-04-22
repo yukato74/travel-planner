@@ -23,7 +23,7 @@ import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
-import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Note } from '@/lib/types/trip';
@@ -148,6 +148,17 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
     }
     setPreviewNote(null);
   }, []);
+
+  const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA') {
+      return;
+    }
+    event.preventDefault();
+  };
 
   const handleAdd = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -385,7 +396,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       </Dialog>
 
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleAdd} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleAdd} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add note
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
@@ -422,7 +433,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSaveEdit} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleSaveEdit} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit note
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>

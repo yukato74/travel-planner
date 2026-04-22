@@ -44,7 +44,7 @@ import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
-import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
@@ -730,6 +730,17 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
     setPreviewHotel(null);
   }, []);
 
+  const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA') {
+      return;
+    }
+    event.preventDefault();
+  };
+
   const openBookingEdit = (request: BookingEditRequest) => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem(OPEN_BOOKING_EDIT_STORAGE_KEY, JSON.stringify(request));
@@ -1288,7 +1299,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       </Dialog>
 
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
-        <Box component="form" onSubmit={handleSubmitAdd} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleSubmitAdd} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add place
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
@@ -1351,7 +1362,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         fullScreen={isMobile}
         sx={{ '& .MuiDialog-paperFullScreen': { bgcolor: 'background.paper' } }}
       >
-        <Box component="form" onSubmit={handleSubmitEdit} sx={mobileFormBoxSx}>
+        <Box component="form" onSubmit={handleSubmitEdit} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit place
             <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>

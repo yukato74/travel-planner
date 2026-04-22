@@ -19,7 +19,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
 import { deleteTrip, leaveTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { TripSummary } from '@/lib/types/trip';
@@ -119,6 +119,17 @@ export function TripInfoDialog({
     } catch {
       setErrorMessage(`Failed to copy ${label.toLowerCase()}.`);
     }
+  };
+
+  const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'TEXTAREA') {
+      return;
+    }
+    event.preventDefault();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -229,7 +240,7 @@ export function TripInfoDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
-      <Box component="form" onSubmit={handleSubmit} sx={mobileFormBoxSx}>
+      <Box component="form" onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} sx={mobileFormBoxSx}>
         <DialogTitle sx={{ position: 'relative' }}>
           Edit trip info
           <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(24px + env(safe-area-inset-right))', gap: 2.5 }}>
