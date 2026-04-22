@@ -916,7 +916,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </IconButton>
             {canEdit && previewFlight && (
               <Button
-                variant="contained"
+                variant="outlined"
+                color="inherit"
                 size="small"
                 onClick={() => {
                   previewHistoryPushedRef.current = false;
@@ -978,7 +979,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             </IconButton>
             {canEdit && previewHotel && (
               <Button
-                variant="contained"
+                variant="outlined"
+                color="inherit"
                 size="small"
                 onClick={() => {
                   previewHistoryPushedRef.current = false;

@@ -305,7 +305,8 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
             </IconButton>
             {canEdit && previewNote && (
               <Button
-                variant="contained"
+                variant="outlined"
+                color="inherit"
                 size="small"
                 onClick={() => {
                   previewNoteHistoryPushedRef.current = false;

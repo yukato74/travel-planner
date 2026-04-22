@@ -1058,7 +1058,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
             </IconButton>
             {canEdit && previewPlace && (
               <Button
-                variant="contained"
+                variant="outlined"
+                color="inherit"
                 size="small"
                 onClick={() => {
                   previewPlaceHistoryPushedRef.current = false;
@@ -1125,7 +1126,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
-              <Button variant="contained" size="small" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
+              <Button variant="outlined" color="inherit" size="small" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
                 Edit
               </Button>
             )}
@@ -1172,7 +1173,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
-              <Button variant="contained" size="small" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
+              <Button variant="outlined" color="inherit" size="small" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
                 Edit
               </Button>
             )}
