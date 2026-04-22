@@ -375,6 +375,20 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormDialogActionsSx = isMobile
+    ? {
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        px: 2,
+        pt: 1.25,
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
+      }
+    : undefined;
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
   const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
 
@@ -1042,7 +1056,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       >
         <Box component="form" onSubmit={handleAddFlight}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add flight</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={addFlight.airline} onChange={(e) => setAddFlight((prev) => ({ ...prev, airline: e.target.value }))} required />
               <TextField label="Flight number" value={addFlight.flightNumber} onChange={(e) => setAddFlight((prev) => ({ ...prev, flightNumber: e.target.value }))} required />
@@ -1078,7 +1092,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Memo" value={addFlight.memo} onChange={(e) => setAddFlight((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button
               onClick={() => {
                 setAddFlightOpen(false);
@@ -1106,7 +1120,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       >
         <Box component="form" onSubmit={handleSaveFlight} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit flight</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Airline" value={editingFlight?.airline ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, airline: e.target.value } : prev))} required />
               <TextField label="Flight number" value={editingFlight?.flightNumber ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, flightNumber: e.target.value } : prev))} required />
@@ -1142,7 +1156,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Memo" value={editingFlight?.memo ?? ''} onChange={(e) => setEditingFlight((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button
               onClick={() => {
                 setEditingFlight(null);
@@ -1171,7 +1185,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       <Dialog open={canEdit && addHotelOpen} onClose={() => setAddHotelOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAddHotel}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add hotel</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={addHotel.name} onChange={(e) => setAddHotel((prev) => ({ ...prev, name: e.target.value }))} required />
               <TextField label="Google Maps URL" value={addHotel.address} onChange={(e) => setAddHotel((prev) => ({ ...prev, address: e.target.value }))} />
@@ -1212,7 +1226,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Memo" value={addHotel.memo} onChange={(e) => setAddHotel((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setAddHotelOpen(false)} color="inherit">Cancel</Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Add hotel'}</Button>
           </DialogActions>
@@ -1229,7 +1243,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       >
         <Box component="form" onSubmit={handleSaveHotel} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit hotel</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Name" value={editingHotel?.name ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, name: e.target.value } : prev))} required />
               <TextField label="Google Maps URL" value={editingHotel?.address ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
@@ -1270,7 +1284,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <TextField label="Memo" value={editingHotel?.memo ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setEditingHotel(null)} color="inherit">Cancel</Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>

@@ -55,6 +55,20 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormDialogActionsSx = isMobile
+    ? {
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        px: 2,
+        pt: 1.25,
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
+      }
+    : undefined;
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -336,7 +350,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       <Dialog open={canEdit && addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleAdd}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add note</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField label="Title" value={title} onChange={(event) => setTitle(event.target.value)} required fullWidth />
               <TextField
@@ -350,7 +364,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setAddOpen(false)} color="inherit">Cancel</Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Add note'}</Button>
           </DialogActions>
@@ -367,7 +381,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
       >
         <Box component="form" onSubmit={handleSaveEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit note</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.25} mt={0.5}>
               <TextField
                 label="Title"
@@ -387,7 +401,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setEditingNote(null)} color="inherit">Cancel</Button>
             <Button type="submit" variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
           </DialogActions>

@@ -15,6 +15,8 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { FormEvent, useEffect, useState } from 'react';
 import { deleteTrip, leaveTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
@@ -45,6 +47,22 @@ export function TripInfoDialog({
   onUpdated,
   onRemoved,
 }: TripInfoDialogProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormDialogActionsSx = isMobile
+    ? {
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        px: 2,
+        pt: 1.25,
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
+      }
+    : undefined;
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -186,10 +204,10 @@ export function TripInfoDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <Box component="form" onSubmit={handleSubmit}>
         <DialogTitle>Edit trip info</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={mobileFormDialogContentSx}>
           <Stack spacing={1.5} mt={0.5}>
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             {copiedMessage && <Alert severity="success">{copiedMessage}</Alert>}
@@ -266,7 +284,7 @@ export function TripInfoDialog({
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={mobileFormDialogActionsSx}>
           {(canDeleteTrip || canLeaveTrip) && (
             <Button color="error" onClick={() => setConfirmActionOpen(true)} disabled={saving} sx={{ mr: 'auto' }}>
               {canDeleteTrip ? 'Delete trip' : 'Leave trip'}

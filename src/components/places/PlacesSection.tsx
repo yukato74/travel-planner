@@ -365,6 +365,20 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   const [sharedOrderLoaded, setSharedOrderLoaded] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobileFormDialogContentSx = isMobile ? { pb: 'calc(96px + env(safe-area-inset-bottom))' } : undefined;
+  const mobileFormDialogActionsSx = isMobile
+    ? {
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        px: 2,
+        pt: 1.25,
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
+      }
+    : undefined;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
@@ -1212,7 +1226,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       <Dialog open={canEdit && Boolean(addDate)} onClose={() => setAddDate(null)} fullWidth maxWidth="sm" fullScreen={isMobile}>
         <Box component="form" onSubmit={handleSubmitAdd}>
           <DialogTitle sx={{ fontWeight: 700 }}>Add place</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
               <TextField
                 select
@@ -1250,7 +1264,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setAddDate(null)} color="inherit">
               Cancel
             </Button>
@@ -1271,7 +1285,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       >
         <Box component="form" onSubmit={handleSubmitEdit} sx={{ minHeight: '100%', mt: 'env(safe-area-inset-top)', bgcolor: 'background.paper' }}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent' }}>Edit place</DialogTitle>
-          <DialogContent>
+          <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />
               <TextField select label="visit_date" value={editVisitDate} onChange={(event) => setEditVisitDate(event.target.value)} required>
@@ -1291,7 +1305,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               />
             </Stack>
           </DialogContent>
-          <DialogActions>
+          <DialogActions sx={mobileFormDialogActionsSx}>
             <Button onClick={() => setEditingPlace(null)} color="inherit">
               Cancel
             </Button>
