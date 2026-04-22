@@ -134,6 +134,7 @@ type PlacesSectionProps = {
   tripId: string;
   dateOptions: string[];
   canEdit?: boolean;
+  isOffline?: boolean;
 };
 
 const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
@@ -341,7 +342,7 @@ function DaySection({
   );
 }
 
-export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSectionProps) {
+export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline = false }: PlacesSectionProps) {
   const [places, setPlaces] = useState<Place[]>([]);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -567,7 +568,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
       setPlaces(getCachedPlaces(tripId));
       setFlights(getCachedFlights(tripId));
       setHotels(getCachedHotels(tripId));
-      setErrorMessage('Offline mode: showing cached itinerary data.');
+      setErrorMessage(null);
       setLoading(false);
       return;
     }
@@ -1093,7 +1094,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
-      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
+      {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>

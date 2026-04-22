@@ -3,6 +3,7 @@
 import { Flight, Hotel, Note, Place, TripSummary } from '@/lib/types/trip';
 
 const CACHE_PREFIX = 'travel-planner:offline:v1';
+const LAST_OPENED_TRIP_KEY = 'travel-planner:last-opened-trip-id';
 
 function buildKey(key: string): string {
   return `${CACHE_PREFIX}:${key}`;
@@ -97,4 +98,28 @@ export function getCachedNotes(tripId: string): Note[] {
 
 export function setCachedNotes(tripId: string, notes: Note[]): void {
   writeCache(`notes:${tripId}`, notes);
+}
+
+export function getLastOpenedTripId(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(LAST_OPENED_TRIP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setLastOpenedTripId(tripId: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
+  } catch {
+    // Ignore storage errors to keep UI responsive.
+  }
 }

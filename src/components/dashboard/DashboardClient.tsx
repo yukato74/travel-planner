@@ -19,10 +19,11 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
 import { formatDisplayDateRange } from '@/lib/date';
-import { getCachedTripList, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
+import { getCachedTripList, getLastOpenedTripId, isLikelyOfflineError, setCachedTripList } from '@/lib/offline/cache';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { createTrip, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -32,7 +33,9 @@ type DashboardClientProps = {
 };
 
 export function DashboardClient({ userId }: DashboardClientProps) {
+  const router = useRouter();
   const { isOffline } = useOfflineStatus();
+  const redirectedInPwaRef = useRef(false);
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,7 +74,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
     if (isLikelyOfflineError(result.error)) {
       setTrips(getCachedTripList(userId));
-      setErrorMessage('Offline mode: showing cached trips.');
+      setErrorMessage(null);
       setLoading(false);
       return;
     }
@@ -82,6 +85,31 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }, [isOffline, userId]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (redirectedInPwaRef.current || loading || trips.length === 0) {
+      return;
+    }
+
+    const isStandalonePwa =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+
+    if (!isStandalonePwa) {
+      return;
+    }
+
+    const lastOpenedTripId = getLastOpenedTripId();
+    if (!lastOpenedTripId || !trips.some((trip) => trip.id === lastOpenedTripId)) {
+      return;
+    }
+
+    redirectedInPwaRef.current = true;
+    router.replace(`/trip/${lastOpenedTripId}`);
+  }, [loading, router, trips]);
+
+  useEffect(() => {
     void loadTrips();
   }, [loadTrips]);
 
@@ -90,7 +118,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     setErrorMessage(null);
 
     if (isOffline) {
-      setErrorMessage('Offline mode: creating trips is disabled.');
       return;
     }
 
@@ -210,7 +237,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           </Stack>
         </Paper>
 
-        {isOffline && <Alert severity="info">Offline mode: read-only view.</Alert>}
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {loading ? (

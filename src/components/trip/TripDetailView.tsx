@@ -20,7 +20,7 @@ import { FlightsHotelsTab } from '@/components/trip/FlightsHotelsTab';
 import { NotesTab } from '@/components/trip/NotesTab';
 import { TripInfoDialog } from '@/components/trip/TripInfoDialog';
 import { enumerateDateRange } from '@/lib/date';
-import { getCachedTrip, getCachedTripList, isLikelyOfflineError, setCachedTrip } from '@/lib/offline/cache';
+import { getCachedTrip, getCachedTripList, isLikelyOfflineError, setCachedTrip, setLastOpenedTripId } from '@/lib/offline/cache';
 import { getTripAccessStorageKey, requiresSharePassword, verifySharePassword } from '@/lib/share/access';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { addTripMember, buildTripShareUrl, getTripById, isInvitedTripMember, listTrips } from '@/lib/trips/service';
@@ -76,7 +76,6 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
         const cachedTrip = getCachedTrip(tripId);
         if (cachedTrip) {
           setTrip(cachedTrip);
-          setErrorMessage('Offline mode: showing cached trip data.');
           setLoading(false);
           return;
         }
@@ -191,6 +190,8 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     if (!trip) {
       return;
     }
+
+    setLastOpenedTripId(trip.id);
 
     window.dispatchEvent(
       new CustomEvent('trip-context', {
@@ -364,7 +365,6 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 } }}>
       <Stack spacing={2}>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-        {isOffline && <Alert severity="info">Offline mode: read-only view.</Alert>}
 
         {needsPasswordGate && !isUnlocked ? (
           <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
@@ -404,7 +404,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
 
             <Stack sx={{ pb: 0.5 }}>
               <Stack sx={{ display: activeTab === 0 ? 'block' : 'none' }}>
-                <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} />
+                <PlacesSection tripId={trip.id} dateOptions={dateOptions} canEdit={canEdit} isOffline={isOffline} />
               </Stack>
               <Stack sx={{ display: activeTab === 1 ? 'block' : 'none' }}>
                 <FlightsHotelsTab
@@ -412,9 +412,10 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
                   tripStartDate={trip.startDate}
                   tripEndDate={trip.endDate}
                   canEdit={canEdit}
+                  isOffline={isOffline}
                 />
               </Stack>
-              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} />}
+              {activeTab === 2 && <NotesTab tripId={trip.id} canEdit={canEdit} isOffline={isOffline} />}
             </Stack>
           </Stack>
         )}

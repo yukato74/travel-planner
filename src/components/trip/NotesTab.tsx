@@ -32,6 +32,7 @@ import { Note } from '@/lib/types/trip';
 type NotesTabProps = {
   tripId: string;
   canEdit?: boolean;
+  isOffline?: boolean;
 };
 
 const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
@@ -41,7 +42,7 @@ const PreviewDialogTransition = forwardRef(function PreviewDialogTransition(
   return <Slide direction="left" ref={ref} {...props} />;
 });
 
-export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
+export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTabProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,7 +126,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
 
     if (isLikelyOfflineError(result.error)) {
       setNotes(getCachedNotes(tripId));
-      setErrorMessage('Offline mode: showing cached notes.');
+      setErrorMessage(null);
       setLoading(false);
       return;
     }
@@ -327,7 +328,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
-      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
+      {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>

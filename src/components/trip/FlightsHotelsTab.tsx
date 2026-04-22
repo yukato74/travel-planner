@@ -39,6 +39,7 @@ type FlightsHotelsTabProps = {
   tripStartDate: string;
   tripEndDate: string;
   canEdit?: boolean;
+  isOffline?: boolean;
 };
 
 type BookingEditRequest = {
@@ -340,7 +341,7 @@ function DateTimePickerField({
   );
 }
 
-export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit = true }: FlightsHotelsTabProps) {
+export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit = true, isOffline = false }: FlightsHotelsTabProps) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -586,7 +587,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       if (isLikelyOfflineError(errorText)) {
         setFlights(getCachedFlights(tripId));
         setHotels(getCachedHotels(tripId));
-        setErrorMessage('Offline mode: showing cached booking data.');
+        setErrorMessage(null);
         return;
       }
       setErrorMessage(errorText);
@@ -917,7 +918,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         opacity: previewOpen ? 0.92 : 1,
       }}
     >
-      {!canEdit && <Alert severity="info">Read-only mode.</Alert>}
+      {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 1.5 }}>
