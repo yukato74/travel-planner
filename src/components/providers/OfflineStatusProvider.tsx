@@ -72,7 +72,7 @@ export function OfflineStatusProvider({ children }: { children: ReactNode }) {
         open={showBackOnlineToast}
         autoHideDuration={3000}
         onClose={() => setShowBackOnlineToast(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert onClose={() => setShowBackOnlineToast(false)} severity="success" variant="filled" sx={{ width: '100%' }}>
           Back online.
