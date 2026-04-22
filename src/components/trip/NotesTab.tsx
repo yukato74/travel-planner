@@ -421,7 +421,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
               </IconButton>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={1}>
+          <Typography variant="h5" component="div" fontWeight={700} mt={1}>
             {previewNote?.title ?? ''}
           </Typography>
         </DialogTitle>

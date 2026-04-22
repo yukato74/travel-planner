@@ -8,6 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FlightIcon from '@mui/icons-material/Flight';
+import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -1075,7 +1076,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </IconButton>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={1}>
+          <Typography variant="h5" component="div" fontWeight={700} mt={1}>
             {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
           </Typography>
         </DialogTitle>
@@ -1118,7 +1119,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               </IconButton>
             )}
           </Stack>
-          <Typography variant="h5" fontWeight={700} mt={1}>
+          <Typography variant="h5" component="div" fontWeight={700} mt={1}>
             {previewHotel?.name ?? ''}
           </Typography>
         </DialogTitle>
@@ -1128,21 +1129,19 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             <Typography variant="body1" color="text.secondary">
               {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
             </Typography>
-            {previewHotel?.address && (
-              isHttpUrl(previewHotel.address) ? (
-                <Typography
-                  variant="body1"
-                  component="a"
-                  href={previewHotel.address}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  sx={{ textDecoration: 'underline', color: 'primary.main' }}
-                >
-                  {previewHotel.address}
-                </Typography>
-              ) : (
-                <Typography variant="body1">{previewHotel.address}</Typography>
-              )
+            {previewHotel?.address && isHttpUrl(previewHotel.address) && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<MapOutlinedIcon fontSize="small" />}
+                component="a"
+                href={previewHotel.address}
+                target="_blank"
+                rel="noreferrer noopener"
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Open in Google Maps
+              </Button>
             )}
             {previewHotel?.memo && (
               <>
