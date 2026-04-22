@@ -3,6 +3,8 @@
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -216,7 +218,24 @@ export function TripInfoDialog({
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <Box component="form" onSubmit={handleSubmit} sx={mobileFormBoxSx}>
-        <DialogTitle>Edit trip info</DialogTitle>
+        <DialogTitle sx={{ position: 'relative' }}>
+          Edit trip info
+          <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            {(canDeleteTrip || canLeaveTrip) && (
+              <IconButton
+                aria-label={canDeleteTrip ? 'Delete trip' : 'Leave trip'}
+                color="inherit"
+                onClick={() => setConfirmActionOpen(true)}
+                disabled={saving}
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+            )}
+            <IconButton aria-label="Close" onClick={onClose} color="inherit" disabled={saving}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
         <DialogContent sx={mobileFormDialogContentSx}>
           <Stack spacing={1.5} mt={0.5}>
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -294,15 +313,7 @@ export function TripInfoDialog({
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={mobileFormDialogActionsSx}>
-          {(canDeleteTrip || canLeaveTrip) && (
-            <Button color="error" onClick={() => setConfirmActionOpen(true)} disabled={saving} sx={{ mr: 'auto' }}>
-              {canDeleteTrip ? 'Delete trip' : 'Leave trip'}
-            </Button>
-          )}
-          <Button onClick={onClose} color="inherit">
-            Cancel
-          </Button>
+        <DialogActions sx={{ ...mobileFormDialogActionsSx, justifyContent: 'center' }}>
           <Button type="submit" variant="contained" disabled={saving}>
             {saving ? 'Saving...' : 'Save'}
           </Button>
