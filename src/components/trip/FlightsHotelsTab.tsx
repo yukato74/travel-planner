@@ -1126,9 +1126,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
             <Divider />
-            <Typography variant="body1" color="text.secondary">
-              {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
-            </Typography>
             {previewHotel?.address && isHttpUrl(previewHotel.address) && (
               <Button
                 variant="outlined"
@@ -1143,13 +1140,13 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 Open in Google Maps
               </Button>
             )}
+            <Typography variant="body1" color="text.secondary">
+              {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
+            </Typography>
             {previewHotel?.memo && (
-              <>
-                <Divider />
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-                  {previewHotel.memo}
-                </Typography>
-              </>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+                {previewHotel.memo}
+              </Typography>
             )}
           </Stack>
         </DialogContent>
