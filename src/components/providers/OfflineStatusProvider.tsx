@@ -18,12 +18,12 @@ export function OfflineStatusProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const OFFLINE_INDICATOR_DELAY_MS = 600;
-    let offlineTimer: ReturnType<typeof window.setTimeout> | null = null;
+    let offlineTimer: ReturnType<typeof setTimeout> | null = null;
     let currentlyOffline = false;
 
     const clearOfflineTimer = () => {
       if (offlineTimer !== null) {
-        window.clearTimeout(offlineTimer);
+        clearTimeout(offlineTimer);
         offlineTimer = null;
       }
     };
@@ -40,7 +40,7 @@ export function OfflineStatusProvider({ children }: { children: ReactNode }) {
 
     const handleOffline = () => {
       clearOfflineTimer();
-      offlineTimer = window.setTimeout(() => {
+      offlineTimer = setTimeout(() => {
         currentlyOffline = true;
         setIsOffline(true);
         offlineTimer = null;
