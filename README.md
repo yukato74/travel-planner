@@ -1,7 +1,7 @@
 # Travel Planner
 
 Travel Planner is a Next.js App Router app backed by Supabase.
-It uses Supabase Auth (Email Magic Link) with SSR session handling via `@supabase/ssr`.
+It uses Supabase Auth (Email OTP: 6-digit code) with SSR session handling via `@supabase/ssr`.
 
 ## UI Structure
 
@@ -21,7 +21,7 @@ It uses Supabase Auth (Email Magic Link) with SSR session handling via `@supabas
 
 ## Auth Behavior
 
-- Login method: Email Magic Link (`signInWithOtp`)
+- Login method: Email OTP (`signInWithOtp` + `verifyOtp`)
 - `/dashboard` requires login (middleware redirect to `/login`)
 - `/trip/[id]` can be viewed without login
 - Editing on `/trip/[id]` is owner-only
@@ -81,6 +81,6 @@ npm run dev
 ## Routes
 
 - `/` Home
-- `/login` Magic Link login
+- `/login` Email code login
 - `/dashboard` My trips (login required)
 - `/trip/[id]` Trip details (viewable without login, editable by owner)

@@ -7,6 +7,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 
@@ -15,12 +16,53 @@ type LoginFormProps = {
 };
 
 export function LoginForm({ nextPath }: LoginFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [isOtpStep, setIsOtpStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const sendOtpCode = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    const { client, error } = getSupabaseBrowserClient();
+    if (!client) {
+      setErrorMessage(error);
+      return false;
+    }
+
+    setLoading(true);
+
+    const { error: signInError } = await client.auth.signInWithOtp({
+      email,
+    });
+
+    setLoading(false);
+
+    if (signInError) {
+      setErrorMessage(`Failed to send verification code: ${signInError.message}`);
+      return false;
+    }
+
+    setIsOtpStep(true);
+    setOtpCode('');
+    setSuccessMessage('Verification code sent. Enter the 6-digit code from your email.');
+    return true;
+  };
+
+  const handleSendOtpSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await sendOtpCode();
+  };
+
+  const handleResendClick = () => {
+    void sendOtpCode();
+  };
+
+  const handleVerifyOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -33,33 +75,32 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     setLoading(true);
 
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
-
-    const { error: signInError } = await client.auth.signInWithOtp({
+    const { error: verifyError } = await client.auth.verifyOtp({
       email,
-      options: {
-        emailRedirectTo: redirectTo,
-      },
+      token: otpCode,
+      type: 'email',
     });
 
     setLoading(false);
 
-    if (signInError) {
-      setErrorMessage(`Failed to send magic link: ${signInError.message}`);
+    if (verifyError) {
+      setErrorMessage(`Failed to verify code: ${verifyError.message}`);
       return;
     }
 
-    setSuccessMessage('Magic link sent. Check your inbox and open the link to sign in.');
+    setSuccessMessage('Signed in successfully.');
+    router.push(nextPath);
+    router.refresh();
   };
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
-      <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
+      <Stack component="form" spacing={2.5} onSubmit={isOtpStep ? handleVerifyOtp : handleSendOtpSubmit}>
         <Typography variant="h5" fontWeight={700}>
           Sign in
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Enter your email to receive a magic link.
+          {isOtpStep ? 'Enter the 6-digit verification code sent to your email.' : 'Enter your email to receive a 6-digit verification code.'}
         </Typography>
 
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -72,15 +113,35 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           onChange={(event) => setEmail(event.target.value)}
           fullWidth
           required
+          disabled={isOtpStep || loading}
         />
+
+        {isOtpStep && (
+          <TextField
+            label="Verification code"
+            type="text"
+            value={otpCode}
+            onChange={(event) => setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+            inputProps={{ maxLength: 6, inputMode: 'numeric', pattern: '[0-9]{6}', autoComplete: 'one-time-code' }}
+            fullWidth
+            required
+          />
+        )}
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="space-between">
           <Button component={Link} href="/" variant="text">
             Back
           </Button>
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Magic Link'}
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            {isOtpStep && (
+              <Button type="button" variant="text" disabled={loading} onClick={handleResendClick}>
+                Resend code
+              </Button>
+            )}
+            <Button type="submit" variant="contained" disabled={loading || (isOtpStep && otpCode.length !== 6)}>
+              {loading ? (isOtpStep ? 'Verifying...' : 'Sending...') : isOtpStep ? 'Verify Code' : 'Send Code'}
+            </Button>
+          </Stack>
         </Stack>
       </Stack>
     </Paper>
