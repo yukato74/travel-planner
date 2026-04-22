@@ -1358,7 +1358,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
                 required
               />
               <TextField
-                label="Address (optional)"
+                label="Google Maps URL"
                 value={addAddress}
                 onChange={(event) => setAddAddress(event.target.value)}
                 fullWidth
@@ -1420,7 +1420,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
                   </MenuItem>
                 ))}
               </TextField>
-              <TextField label="Address (optional)" value={editAddress} onChange={(event) => setEditAddress(event.target.value)} />
+              <TextField label="Google Maps URL" value={editAddress} onChange={(event) => setEditAddress(event.target.value)} />
               <TextField
                 label="Memo (optional)"
                 value={editMemo}
