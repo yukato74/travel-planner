@@ -45,6 +45,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlightPreviewContent } from '@/components/trip/FlightPreviewContent';
 import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
@@ -1198,6 +1199,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
+            <Divider />
             <Typography variant="body1" color="text.secondary">
               Visit date: {previewPlace ? formatDisplayDate(previewPlace.visitDate) : ''}
             </Typography>
@@ -1257,22 +1259,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={1} mt={0.5}>
-            <Typography variant="body1" color="text.secondary">
-              {formatAirportCode(previewFlight?.departureAirport ?? '')} {'→'} {formatAirportCode(previewFlight?.arrivalAirport ?? '')}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
-            </Typography>
-            {previewFlight?.memo && (
-              <>
-                <Divider />
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-                  {previewFlight.memo}
-                </Typography>
-              </>
-            )}
-          </Stack>
+          {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
         </Box>
       </Dialog>
@@ -1305,6 +1292,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
+            <Divider />
             <Typography variant="body1" color="text.secondary">
               {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
             </Typography>

@@ -27,6 +27,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, Theme, useTheme } from '@mui/material/styles';
 import { FormEvent, KeyboardEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FlightPreviewContent } from '@/components/trip/FlightPreviewContent';
 import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
@@ -147,20 +148,6 @@ function combineDateTimeLocal(date: string, time: string): string {
   }
   const normalizedTime = /^\d{2}:\d{2}$/.test(time) ? time : '00:00';
   return `${normalizedDate}T${normalizedTime}`;
-}
-
-function getDayDiff(start: string, end: string): number {
-  const startDate = start.slice(0, 10);
-  const endDate = end.slice(0, 10);
-  if (!startDate || !endDate) {
-    return 0;
-  }
-  const startMs = Date.parse(`${startDate}T00:00:00Z`);
-  const endMs = Date.parse(`${endDate}T00:00:00Z`);
-  if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
-    return 0;
-  }
-  return Math.max(0, Math.round((endMs - startMs) / (24 * 60 * 60 * 1000)));
 }
 
 function AirportAutocompleteField({
@@ -422,7 +409,6 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     '&:active': { bgcolor: (muiTheme: Theme) => alpha(muiTheme.palette.error.main, 0.24) },
   };
   const saveButtonSx = { width: '100%', maxWidth: 520 };
-  const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
   const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
 
   const handleAddFlightDepartureChange = (value: string) => {
@@ -1094,29 +1080,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {previewFlight && (
-          <Stack spacing={1} mt={0.5}>
-            <Typography variant="body1" color="text.secondary">
-              {formatAirportDisplayName(previewFlight?.departureAirport ?? '')} {'→'} {formatAirportDisplayName(previewFlight?.arrivalAirport ?? '')}
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {previewFlight ? `${formatMonthDayTime(previewFlight.departureTime)} - ${formatMonthDayTime(previewFlight.arrivalTime)}` : ''}
-            </Typography>
-            {previewFlightDayDiff > 0 && (
-              <Typography variant="body2" color="text.secondary">
-                Overnight / multi-day flight (+{previewFlightDayDiff} day{previewFlightDayDiff > 1 ? 's' : ''})
-              </Typography>
-            )}
-            {previewFlight?.memo && (
-              <>
-                <Divider />
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-                  {previewFlight.memo}
-                </Typography>
-              </>
-            )}
-          </Stack>
-          )}
+          {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
         </Box>
       </Dialog>
@@ -1160,6 +1124,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         </DialogTitle>
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
+            <Divider />
             <Typography variant="body1" color="text.secondary">
               {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
             </Typography>
