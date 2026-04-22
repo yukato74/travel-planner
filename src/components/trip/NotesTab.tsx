@@ -22,7 +22,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { createNote, deleteNote, listNotesByTripId, updateNote } from '@/lib/notes/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -81,6 +81,18 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
+  const modalNeutralIconButtonSx = {
+    color: 'text.secondary',
+    bgcolor: 'action.hover',
+    '&:hover': { bgcolor: 'action.selected' },
+    '&:active': { bgcolor: 'action.focus' },
+  };
+  const modalDeleteIconButtonSx = {
+    color: 'error.main',
+    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+  };
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -333,6 +345,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
               <IconButton
                 color="inherit"
                 aria-label="Edit"
+                sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewNoteHistoryPushedRef.current = false;
                   setEditingNote(previewNote);
@@ -362,8 +375,8 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         <Box component="form" onSubmit={handleAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add note
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
-              <IconButton aria-label="Close" onClick={() => setAddOpen(false)} color="inherit">
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+              <IconButton aria-label="Close" onClick={() => setAddOpen(false)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -399,11 +412,12 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
         <Box component="form" onSubmit={handleSaveEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit note
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
               {editingNote && (
                 <IconButton
                   aria-label="Delete"
                   color="inherit"
+                  sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingNote(editingNote);
                     setEditingNote(null);
@@ -412,7 +426,7 @@ export function NotesTab({ tripId, canEdit = true }: NotesTabProps) {
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingNote(null)} color="inherit">
+              <IconButton aria-label="Close" onClick={() => setEditingNote(null)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>

@@ -18,7 +18,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { FormEvent, useEffect, useState } from 'react';
 import { deleteTrip, leaveTrip, updateTrip } from '@/lib/trips/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
@@ -75,6 +75,18 @@ export function TripInfoDialog({
         pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
+  const modalNeutralIconButtonSx = {
+    color: 'text.secondary',
+    bgcolor: 'action.hover',
+    '&:hover': { bgcolor: 'action.selected' },
+    '&:active': { bgcolor: 'action.focus' },
+  };
+  const modalDeleteIconButtonSx = {
+    color: 'error.main',
+    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+  };
   const [title, setTitle] = useState(trip.title);
   const [startDate, setStartDate] = useState(trip.startDate);
   const [endDate, setEndDate] = useState(trip.endDate);
@@ -220,18 +232,19 @@ export function TripInfoDialog({
       <Box component="form" onSubmit={handleSubmit} sx={mobileFormBoxSx}>
         <DialogTitle sx={{ position: 'relative' }}>
           Edit trip info
-          <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
             {(canDeleteTrip || canLeaveTrip) && (
               <IconButton
                 aria-label={canDeleteTrip ? 'Delete trip' : 'Leave trip'}
                 color="inherit"
+                sx={modalDeleteIconButtonSx}
                 onClick={() => setConfirmActionOpen(true)}
                 disabled={saving}
               >
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>
             )}
-            <IconButton aria-label="Close" onClick={onClose} color="inherit" disabled={saving}>
+            <IconButton aria-label="Close" onClick={onClose} color="inherit" sx={modalNeutralIconButtonSx} disabled={saving}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Stack>

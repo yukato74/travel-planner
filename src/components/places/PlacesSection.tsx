@@ -43,7 +43,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
@@ -389,6 +389,18 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
+  const modalNeutralIconButtonSx = {
+    color: 'text.secondary',
+    bgcolor: 'action.hover',
+    '&:hover': { bgcolor: 'action.selected' },
+    '&:active': { bgcolor: 'action.focus' },
+  };
+  const modalDeleteIconButtonSx = {
+    color: 'error.main',
+    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+  };
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 3 } }),
@@ -1076,6 +1088,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <IconButton
                 color="inherit"
                 aria-label="Edit"
+                sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewPlaceHistoryPushedRef.current = false;
                   openEditDialog(previewPlace);
@@ -1141,7 +1154,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewFlight && (
-              <IconButton color="inherit" aria-label="Edit" onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
+              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id })}>
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             )}
@@ -1188,7 +1201,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
               <ArrowBackIcon fontSize="small" />
             </IconButton>
             {canEdit && previewHotel && (
-              <IconButton color="inherit" aria-label="Edit" onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
+              <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id })}>
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             )}
@@ -1235,8 +1248,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <Box component="form" onSubmit={handleSubmitAdd} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add place
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
-              <IconButton aria-label="Close" onClick={() => setAddDate(null)} color="inherit">
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+              <IconButton aria-label="Close" onClick={() => setAddDate(null)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -1298,11 +1311,12 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <Box component="form" onSubmit={handleSubmitEdit} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit place
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
               {editingPlace && (
                 <IconButton
                   aria-label="Delete"
                   color="inherit"
+                  sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingPlace(editingPlace);
                     setEditingPlace(null);
@@ -1311,7 +1325,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingPlace(null)} color="inherit">
+              <IconButton aria-label="Close" onClick={() => setEditingPlace(null)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>

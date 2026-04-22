@@ -25,7 +25,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
@@ -401,6 +401,18 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
+  const modalNeutralIconButtonSx = {
+    color: 'text.secondary',
+    bgcolor: 'action.hover',
+    '&:hover': { bgcolor: 'action.selected' },
+    '&:active': { bgcolor: 'action.focus' },
+  };
+  const modalDeleteIconButtonSx = {
+    color: 'error.main',
+    bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.12),
+    '&:hover': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.18) },
+    '&:active': { bgcolor: (muiTheme: any) => alpha(muiTheme.palette.error.main, 0.24) },
+  };
   const previewFlightDayDiff = previewFlight ? getDayDiff(previewFlight.departureTime, previewFlight.arrivalTime) : 0;
   const flightDateOptions = useMemo(() => enumerateDateRange(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
 
@@ -944,6 +956,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <IconButton
                 color="inherit"
                 aria-label="Edit"
+                sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewHistoryPushedRef.current = false;
                   openEditFlight(previewFlight);
@@ -1006,6 +1019,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
               <IconButton
                 color="inherit"
                 aria-label="Edit"
+                sx={modalNeutralIconButtonSx}
                 onClick={() => {
                   previewHistoryPushedRef.current = false;
                   setEditingHotel(previewHotel);
@@ -1067,7 +1081,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleAddFlight} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add flight
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
               <IconButton
                 aria-label="Close"
                 onClick={() => {
@@ -1075,6 +1089,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   setAddFlightArrivalTouched(false);
                 }}
                 color="inherit"
+                sx={modalNeutralIconButtonSx}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -1136,11 +1151,12 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleSaveFlight} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit flight
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
               {editingFlight && (
                 <IconButton
                   aria-label="Delete"
                   color="inherit"
+                  sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingFlight(editingFlight);
                     setEditingFlight(null);
@@ -1157,6 +1173,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   setEditFlightArrivalTouched(true);
                 }}
                 color="inherit"
+                sx={modalNeutralIconButtonSx}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -1219,8 +1236,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleAddHotel} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, position: 'relative' }}>
             Add hotel
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
-              <IconButton aria-label="Close" onClick={() => setAddHotelOpen(false)} color="inherit">
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
+              <IconButton aria-label="Close" onClick={() => setAddHotelOpen(false)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>
@@ -1283,11 +1300,12 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <Box component="form" onSubmit={handleSaveHotel} sx={mobileFormBoxSx}>
           <DialogTitle sx={{ fontWeight: 700, bgcolor: 'transparent', position: 'relative' }}>
             Edit hotel
-            <Stack direction="row" spacing={0.5} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 'calc(8px + env(safe-area-inset-right))', gap: 1.5 }}>
               {editingHotel && (
                 <IconButton
                   aria-label="Delete"
                   color="inherit"
+                  sx={modalDeleteIconButtonSx}
                   onClick={() => {
                     setDeletingHotel(editingHotel);
                     setEditingHotel(null);
@@ -1296,7 +1314,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton aria-label="Close" onClick={() => setEditingHotel(null)} color="inherit">
+              <IconButton aria-label="Close" onClick={() => setEditingHotel(null)} color="inherit" sx={modalNeutralIconButtonSx}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Stack>
