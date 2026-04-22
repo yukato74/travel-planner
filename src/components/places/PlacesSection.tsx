@@ -42,6 +42,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { formatDisplayDate, formatDisplayDateRange } from '@/lib/date';
 import { PlaceItem } from '@/components/places/PlaceItem';
 import { listFlightsByTripId } from '@/lib/flights/service';
 import { listHotelsByTripId } from '@/lib/hotels/service';
@@ -467,19 +468,11 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
   }, [dateOptions, hotels]);
 
   const dayMeta = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC',
-    });
-
     return dateOptions.map((date, index) => {
-      const [year, month, day] = date.split('-').map(Number);
-      const shortDate = formatter.format(new Date(Date.UTC(year, month - 1, day)));
       return {
         date,
         dayLabel: `Day ${index + 1}`,
-        shortDate,
+        shortDate: formatDisplayDate(date),
       };
     });
   }, [dateOptions]);
@@ -1078,7 +1071,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
             <Typography variant="body1" color="text.secondary">
-              Visit date: {previewPlace?.visitDate}
+              Visit date: {previewPlace ? formatDisplayDate(previewPlace.visitDate) : ''}
             </Typography>
             {previewPlace?.address && (
               isHttpUrl(previewPlace.address) ? (
@@ -1185,7 +1178,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true }: PlacesSec
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
             <Typography variant="body1" color="text.secondary">
-              {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
+              {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
             </Typography>
             {previewHotel?.address && (
               isHttpUrl(previewHotel.address) ? (

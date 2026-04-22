@@ -10,3 +10,22 @@ export function enumerateDateRange(startDate: string, endDate: string): string[]
 
   return dates;
 }
+
+const displayDateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+export function formatDisplayDate(value: string): string {
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return displayDateFormatter.format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+export function formatDisplayDateRange(startDate: string, endDate: string): string {
+  return `${formatDisplayDate(startDate)} - ${formatDisplayDate(endDate)}`;
+}

@@ -25,7 +25,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { FormEvent, ReactElement, Ref, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { enumerateDateRange } from '@/lib/date';
+import { enumerateDateRange, formatDisplayDateRange } from '@/lib/date';
 import { createFlight, deleteFlight, listFlightsByTripId, updateFlight } from '@/lib/flights/service';
 import { createHotel, deleteHotel, listHotelsByTripId, updateHotel } from '@/lib/hotels/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -888,7 +888,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                       )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
-                      {hotel.checkInDate} - {hotel.checkOutDate}
+                      {formatDisplayDateRange(hotel.checkInDate, hotel.checkOutDate)}
                     </Typography>
                   </Stack>
                 </Paper>
@@ -999,7 +999,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         <DialogContent>
           <Stack spacing={1} mt={0.5}>
             <Typography variant="body1" color="text.secondary">
-              {previewHotel?.checkInDate} - {previewHotel?.checkOutDate}
+              {previewHotel ? formatDisplayDateRange(previewHotel.checkInDate, previewHotel.checkOutDate) : ''}
             </Typography>
             {previewHotel?.address && (
               isHttpUrl(previewHotel.address) ? (

@@ -20,6 +20,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { formatDisplayDateRange } from '@/lib/date';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { createTrip, listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -189,7 +190,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                         {trip.title}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {trip.startDate} - {trip.endDate}
+                        {formatDisplayDateRange(trip.startDate, trip.endDate)}
                       </Typography>
                       <Stack direction="row" spacing={1} flexWrap="wrap">
                         <Chip

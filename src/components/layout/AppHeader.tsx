@@ -22,6 +22,7 @@ import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { formatDisplayDateRange } from '@/lib/date';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
 import { listTrips } from '@/lib/trips/service';
 import { TripSummary } from '@/lib/types/trip';
@@ -217,7 +218,7 @@ export function AppHeader() {
                     >
                       <ListItemText
                         primary={trip.title}
-                        secondary={`${trip.startDate} - ${trip.endDate}`}
+                        secondary={formatDisplayDateRange(trip.startDate, trip.endDate)}
                       />
                     </ListItemButton>
                   </ListItem>
