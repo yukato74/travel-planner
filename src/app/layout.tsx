@@ -7,14 +7,12 @@ export const metadata: Metadata = {
   title: 'Travel Planner',
   description: 'Travel Planner built with Next.js App Router and MUI',
   manifest: '/manifest.webmanifest',
-  themeColor: '#F5F7FA',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#F5F7FA',
 };
 
 export default function RootLayout({
