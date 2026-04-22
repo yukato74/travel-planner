@@ -85,28 +85,20 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }, [isOffline, userId]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (redirectedInPwaRef.current || loading) {
       return;
     }
-    if (redirectedInPwaRef.current || loading || trips.length === 0) {
-      return;
-    }
-
-    const isStandalonePwa =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
-
-    if (!isStandalonePwa) {
+    if (trips.length === 0) {
       return;
     }
 
     const lastOpenedTripId = getLastOpenedTripId();
-    if (!lastOpenedTripId || !trips.some((trip) => trip.id === lastOpenedTripId)) {
-      return;
-    }
+    const targetTripId = lastOpenedTripId && trips.some((trip) => trip.id === lastOpenedTripId)
+      ? lastOpenedTripId
+      : trips[0].id;
 
     redirectedInPwaRef.current = true;
-    router.replace(`/trip/${lastOpenedTripId}`);
+    router.replace(`/trip/${targetTripId}`);
   }, [loading, router, trips]);
 
   useEffect(() => {
