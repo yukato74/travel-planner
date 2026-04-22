@@ -56,7 +56,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 } }}>
       <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
         <Typography variant="h5" fontWeight={700}>
-          Login
+          Sign in
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Enter your email to receive a magic link.
