@@ -77,7 +77,13 @@ export function NewTripClient({ userId }: NewTripClientProps) {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container
+      maxWidth="md"
+      sx={{
+        pt: { xs: 4, md: 6 },
+        pb: { xs: 'calc(28px + env(safe-area-inset-bottom))', md: 6 },
+      }}
+    >
       <Stack spacing={3}>
         <Stack spacing={0.75}>
           <Typography variant="h4" fontSize={{ xs: '1.7rem', md: '2rem' }} fontWeight={700}>

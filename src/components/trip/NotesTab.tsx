@@ -81,7 +81,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'calc(20px + env(safe-area-inset-bottom))',
+        pb: 'max(28px, calc(16px + env(safe-area-inset-bottom)))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {
