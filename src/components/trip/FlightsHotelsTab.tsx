@@ -394,7 +394,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'max(28px, calc(16px + env(safe-area-inset-bottom)))',
+        pb: 'calc(var(--mobile-save-bottom-spacing) + env(safe-area-inset-bottom))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {

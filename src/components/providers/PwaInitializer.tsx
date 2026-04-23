@@ -17,11 +17,18 @@ function isStandaloneDisplayMode(): boolean {
 
 export function PwaInitializer() {
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    if (typeof window === 'undefined') {
       return;
     }
 
-    if (!isStandaloneDisplayMode()) {
+    const standalone = isStandaloneDisplayMode();
+    document.documentElement.dataset.standalone = standalone ? 'true' : 'false';
+
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    if (!standalone) {
       void navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
           void registration.unregister();

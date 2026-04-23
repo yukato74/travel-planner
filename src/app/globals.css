@@ -5,6 +5,13 @@
 :root {
   color-scheme: light dark;
   --app-header-height: 56px;
+  --mobile-save-bottom-spacing: 12px;
+  --new-trip-bottom-spacing: 0px;
+}
+
+html[data-standalone='true'] {
+  --mobile-save-bottom-spacing: 28px;
+  --new-trip-bottom-spacing: 28px;
 }
 
 @media (min-width: 600px) {
