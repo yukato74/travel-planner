@@ -719,20 +719,20 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
 
   const openPreviewPlace = (place: Place) => {
     setPreviewPlace(place);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'place' }, '');
       previewPlaceHistoryPushedRef.current = true;
     }
   };
 
   const closePreviewPlace = useCallback(() => {
-    if (previewPlaceHistoryPushedRef.current && typeof window !== 'undefined') {
+    if (isMobile && previewPlaceHistoryPushedRef.current && typeof window !== 'undefined') {
       previewPlaceHistoryPushedRef.current = false;
       window.history.back();
       return;
     }
     setPreviewPlace(null);
-  }, []);
+  }, [isMobile]);
 
   const openPreviewFlight = useCallback((flightId: string) => {
     const target = flights.find((item) => item.id === flightId);
@@ -741,30 +741,30 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     }
     setPreviewHotel(null);
     setPreviewFlight(target);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'flight' }, '');
       previewBookingHistoryPushedRef.current = true;
     }
-  }, [flights]);
+  }, [flights, isMobile]);
 
   const openPreviewHotel = useCallback((hotel: Hotel) => {
     setPreviewFlight(null);
     setPreviewHotel(hotel);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'hotel' }, '');
       previewBookingHistoryPushedRef.current = true;
     }
-  }, []);
+  }, [isMobile]);
 
   const closePreviewBooking = useCallback(() => {
-    if (previewBookingHistoryPushedRef.current && typeof window !== 'undefined') {
+    if (isMobile && previewBookingHistoryPushedRef.current && typeof window !== 'undefined') {
       previewBookingHistoryPushedRef.current = false;
       window.history.back();
       return;
     }
     setPreviewFlight(null);
     setPreviewHotel(null);
-  }, []);
+  }, [isMobile]);
 
   const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Enter') {
@@ -788,7 +788,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !isMobile) {
       return;
     }
     const handleOpenItineraryBookingPreview = (event: Event) => {
@@ -810,7 +810,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     return () => {
       window.removeEventListener(OPEN_ITINERARY_BOOKING_PREVIEW_EVENT, handleOpenItineraryBookingPreview);
     };
-  }, [hotels, openPreviewFlight, openPreviewHotel]);
+  }, [hotels, isMobile, openPreviewFlight, openPreviewHotel]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -826,10 +826,10 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [previewPlace]);
+  }, [isMobile, previewPlace]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !isMobile) {
       return;
     }
     const handlePopState = () => {
@@ -843,7 +843,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [previewFlight, previewHotel]);
+  }, [isMobile, previewFlight, previewHotel]);
 
   const handleSubmitEdit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -1094,8 +1094,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'none',
-        opacity: previewOpen ? 0.92 : 1,
+        transform: previewOpen && isMobile ? 'translateX(-20px)' : 'none',
+        opacity: previewOpen && isMobile ? 0.92 : 1,
       }}
     >
       {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
@@ -1169,15 +1169,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewPlace} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreviewPlace} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewPlace && (
               <IconButton
@@ -1233,15 +1233,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreviewBooking} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewFlight && (
               <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'flight', id: previewFlight.id, source: 'itinerary-preview' })}>
@@ -1264,15 +1264,15 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewBooking} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreviewBooking} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewHotel && (
               <IconButton color="inherit" aria-label="Edit" sx={modalNeutralIconButtonSx} onClick={() => openBookingEdit({ kind: 'hotel', id: previewHotel.id, source: 'itinerary-preview' })}>

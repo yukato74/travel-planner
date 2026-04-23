@@ -141,7 +141,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
   }, [loadNotes]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !isMobile) {
       return;
     }
     const handlePopState = () => {
@@ -154,24 +154,24 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [previewNote]);
+  }, [isMobile, previewNote]);
 
   const openPreviewNote = (note: Note) => {
     setPreviewNote(note);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'note' }, '');
       previewNoteHistoryPushedRef.current = true;
     }
   };
 
   const closePreviewNote = useCallback(() => {
-    if (previewNoteHistoryPushedRef.current && typeof window !== 'undefined') {
+    if (isMobile && previewNoteHistoryPushedRef.current && typeof window !== 'undefined') {
       previewNoteHistoryPushedRef.current = false;
       window.history.back();
       return;
     }
     setPreviewNote(null);
-  }, []);
+  }, [isMobile]);
 
   const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Enter') {
@@ -326,8 +326,8 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'none',
-        opacity: previewOpen ? 0.92 : 1,
+        transform: previewOpen && isMobile ? 'translateX(-20px)' : 'none',
+        opacity: previewOpen && isMobile ? 0.92 : 1,
       }}
     >
       {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
@@ -395,15 +395,15 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreviewNote} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreviewNote} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewNote && (
               <IconButton

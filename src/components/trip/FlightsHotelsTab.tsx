@@ -475,7 +475,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
   const openPreviewFlight = (flight: Flight) => {
     setPreviewFlight(flight);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'flight' }, '');
       previewHistoryPushedRef.current = true;
     }
@@ -483,21 +483,21 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
 
   const openPreviewHotel = (hotel: Hotel) => {
     setPreviewHotel(hotel);
-    if (typeof window !== 'undefined') {
+    if (isMobile && typeof window !== 'undefined') {
       window.history.pushState({ ...window.history.state, previewModal: 'hotel' }, '');
       previewHistoryPushedRef.current = true;
     }
   };
 
   const closePreview = useCallback(() => {
-    if (previewHistoryPushedRef.current && typeof window !== 'undefined') {
+    if (isMobile && previewHistoryPushedRef.current && typeof window !== 'undefined') {
       previewHistoryPushedRef.current = false;
       window.history.back();
       return;
     }
     setPreviewFlight(null);
     setPreviewHotel(null);
-  }, []);
+  }, [isMobile]);
 
   const preventEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
     if (event.key !== 'Enter') {
@@ -588,7 +588,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
   }, [loadData]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !isMobile) {
       return;
     }
     const handlePopState = () => {
@@ -602,7 +602,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [previewFlight, previewHotel]);
+  }, [isMobile, previewFlight, previewHotel]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -908,8 +908,8 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         transition: theme.transitions.create(['transform', 'opacity'], {
           duration: theme.transitions.duration.shorter,
         }),
-        transform: previewOpen ? 'translateX(-20px)' : 'none',
-        opacity: previewOpen ? 0.92 : 1,
+        transform: previewOpen && isMobile ? 'translateX(-20px)' : 'none',
+        opacity: previewOpen && isMobile ? 0.92 : 1,
       }}
     >
       {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
@@ -1049,15 +1049,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewFlight && (
               <IconButton
@@ -1091,15 +1091,15 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         fullWidth
         maxWidth="sm"
         fullScreen={isMobile}
-        TransitionComponent={PreviewDialogTransition}
+        TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
         scroll="body"
         disableScrollLock
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
-            <IconButton onClick={closePreview} color="inherit" aria-label="Back">
-              <ArrowBackIcon fontSize="small" />
+            <IconButton onClick={closePreview} color="inherit" aria-label={isMobile ? 'Back' : 'Close'}>
+              {isMobile ? <ArrowBackIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
             </IconButton>
             {canEdit && previewHotel && (
               <IconButton
