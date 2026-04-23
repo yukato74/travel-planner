@@ -5,12 +5,12 @@
 :root {
   color-scheme: light dark;
   --app-header-height: 56px;
-  --mobile-save-bottom-spacing: 12px;
+  --mobile-save-bottom-spacing: 0px;
   --new-trip-bottom-spacing: 0px;
 }
 
 html[data-standalone='true'] {
-  --mobile-save-bottom-spacing: 28px;
+  --mobile-save-bottom-spacing: calc(28px + env(safe-area-inset-bottom));
   --new-trip-bottom-spacing: 28px;
 }
 

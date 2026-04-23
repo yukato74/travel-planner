@@ -81,7 +81,7 @@ export function NewTripClient({ userId }: NewTripClientProps) {
       maxWidth="md"
       sx={{
         pt: { xs: 4, md: 6 },
-        pb: { xs: 'calc(var(--new-trip-bottom-spacing) + env(safe-area-inset-bottom))', md: 6 },
+        pb: { xs: 'var(--new-trip-bottom-spacing)', md: 6 },
       }}
     >
       <Stack spacing={3}>

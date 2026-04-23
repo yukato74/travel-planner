@@ -21,11 +21,24 @@ export function PwaInitializer() {
       return;
     }
 
-    const standalone = isStandaloneDisplayMode();
-    document.documentElement.dataset.standalone = standalone ? 'true' : 'false';
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const syncStandaloneDataset = () => {
+      const standalone = isStandaloneDisplayMode();
+      document.documentElement.dataset.standalone = standalone ? 'true' : 'false';
+      return standalone;
+    };
+    const standalone = syncStandaloneDataset();
+    const handleDisplayModeChange = () => {
+      syncStandaloneDataset();
+    };
+    mediaQuery.addEventListener('change', handleDisplayModeChange);
+    window.addEventListener('pageshow', handleDisplayModeChange);
 
     if (!('serviceWorker' in navigator)) {
-      return;
+      return () => {
+        mediaQuery.removeEventListener('change', handleDisplayModeChange);
+        window.removeEventListener('pageshow', handleDisplayModeChange);
+      };
     }
 
     if (!standalone) {
@@ -34,12 +47,16 @@ export function PwaInitializer() {
           void registration.unregister();
         });
       });
-      return;
+    } else {
+      void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+        // Ignore registration errors for non-supporting environments.
+      });
     }
 
-    void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
-      // Ignore registration errors for non-supporting environments.
-    });
+    return () => {
+      mediaQuery.removeEventListener('change', handleDisplayModeChange);
+      window.removeEventListener('pageshow', handleDisplayModeChange);
+    };
   }, []);
 
   return null;
