@@ -17,42 +17,16 @@ html,
 body {
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
   background: #F5F7FA;
-  background-color: #F5F7FA;
 }
 
 @media (prefers-color-scheme: dark) {
   html,
   body {
     background: #121212;
-    background-color: #121212;
   }
 }
 
 body {
   margin: 0;
-}
-
-.app-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-}
-
-.app-main {
-  flex: 1;
-  padding-top: var(--app-header-height);
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .app-main {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 120px);
-  }
-}
-
-@media (display-mode: standalone) {
-  .app-main {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
