@@ -46,10 +46,11 @@ export function isLikelyOfflineError(message: string | null | undefined): boolea
   const normalized = message.toLowerCase();
   return (
     normalized.includes('failed to fetch') ||
-    normalized.includes('network') ||
-    normalized.includes('fetch') ||
+    normalized.includes('networkerror') ||
+    normalized.includes('network request failed') ||
     normalized.includes('load failed') ||
-    normalized.includes('internet')
+    normalized.includes('internet disconnected') ||
+    normalized.includes('the network connection was lost')
   );
 }
 
