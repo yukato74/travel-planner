@@ -397,8 +397,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
         fullScreen={isMobile}
         TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
-        scroll="body"
-        disableScrollLock
+        scroll="paper"
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>

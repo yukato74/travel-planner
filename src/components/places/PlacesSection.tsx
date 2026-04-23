@@ -1171,8 +1171,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
-        scroll="body"
-        disableScrollLock
+        scroll="paper"
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
@@ -1235,8 +1234,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
-        scroll="body"
-        disableScrollLock
+        scroll="paper"
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
@@ -1266,8 +1264,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         fullScreen={isMobile}
         TransitionComponent={isMobile ? PreviewDialogTransition : undefined}
         keepMounted
-        scroll="body"
-        disableScrollLock
+        scroll="paper"
       >
         <DialogTitle sx={{ py: 1.5, bgcolor: 'transparent' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>

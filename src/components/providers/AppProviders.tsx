@@ -3,6 +3,7 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ReactNode } from 'react';
+import { ModalScrollLockGuard } from '@/components/providers/ModalScrollLockGuard';
 import { OfflineStatusProvider } from '@/components/providers/OfflineStatusProvider';
 import { PwaInitializer } from '@/components/providers/PwaInitializer';
 import ThemeRegistry from '@/components/providers/ThemeRegistry';
@@ -74,6 +75,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <OfflineStatusProvider>
+          <ModalScrollLockGuard />
           <PwaInitializer />
           {children}
         </OfflineStatusProvider>
