@@ -397,7 +397,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'calc(12px + env(safe-area-inset-bottom))',
+        pb: 'calc(20px + env(safe-area-inset-bottom))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {
