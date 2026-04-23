@@ -34,6 +34,7 @@ export default function RootLayout({
             <main
               style={{
                 flex: 1,
+                paddingTop: 'var(--app-header-height)',
               }}
             >
               {children}

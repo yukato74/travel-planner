@@ -169,7 +169,7 @@ export function AppHeader() {
   return (
     <>
       <AppBar
-        position="sticky"
+        position="fixed"
         color="default"
         elevation={0}
         sx={{

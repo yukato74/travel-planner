@@ -4,6 +4,13 @@
 
 :root {
   color-scheme: light;
+  --app-header-height: 56px;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --app-header-height: 64px;
+  }
 }
 
 html,
