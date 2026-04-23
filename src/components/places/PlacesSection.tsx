@@ -1198,9 +1198,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
             {previewPlace?.name ?? ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           <Stack spacing={1} mt={0.5}>
-            <Divider />
+            <Divider sx={{ mb: 1.25 }} />
             {previewPlace?.address && isHttpUrl(previewPlace.address) && (
               <Button
                 variant="outlined"
@@ -1253,7 +1253,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
             {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
       </Dialog>
@@ -1284,9 +1284,9 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
             {previewHotel?.name ?? ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           <Stack spacing={1} mt={0.5}>
-            <Divider />
+            <Divider sx={{ mb: 1.25 }} />
             {previewHotel?.address && isHttpUrl(previewHotel.address) && (
               <Button
                 variant="outlined"

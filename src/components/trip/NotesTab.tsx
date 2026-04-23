@@ -425,9 +425,9 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
             {previewNote?.title ?? ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           <Stack spacing={1} mt={0.5}>
-            <Divider />
+            <Divider sx={{ mb: 0.75 }} />
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
               {previewNote?.content}
             </Typography>

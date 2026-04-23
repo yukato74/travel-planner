@@ -1080,7 +1080,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             {previewFlight ? `${previewFlight.airline} ${previewFlight.flightNumber}` : ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           {previewFlight && <FlightPreviewContent flight={previewFlight} />}
         </DialogContent>
       </Dialog>
@@ -1122,9 +1122,9 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
             {previewHotel?.name ?? ''}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 0 }}>
           <Stack spacing={1} mt={0.5}>
-            <Divider />
+            <Divider sx={{ mb: 0.75 }} />
             {previewHotel?.address && isHttpUrl(previewHotel.address) && (
               <Button
                 variant="outlined"
