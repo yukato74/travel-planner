@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'travel-planner-shell-v1';
-const ASSET_CACHE = 'travel-planner-asset-v1';
+const SHELL_CACHE = 'travel-planner-shell-v2';
+const ASSET_CACHE = 'travel-planner-asset-v2';
 const SHELL_URLS = ['/', '/dashboard', '/manifest.webmanifest', '/icons/icon-192.svg', '/icons/icon-512.svg'];
 
 self.addEventListener('install', (event) => {

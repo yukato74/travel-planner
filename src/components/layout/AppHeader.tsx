@@ -169,7 +169,7 @@ export function AppHeader() {
   return (
     <>
       <AppBar
-        position="fixed"
+        position="sticky"
         color="default"
         elevation={0}
         sx={{
@@ -205,7 +205,6 @@ export function AppHeader() {
           )}
         </Toolbar>
       </AppBar>
-      <Toolbar />
 
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Stack sx={{ width: 300, height: '100%' }}>

@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -27,7 +26,6 @@ export default function RootLayout({
           <div
             style={{
               backgroundColor: '#F5F7FA',
-              minHeight: '100dvh',
               display: 'flex',
               flexDirection: 'column',
             }}
