@@ -134,6 +134,14 @@ export function AppProviders({ children }: { children: ReactNode }) {
     [prefersDarkMode],
   );
 
+  useEffect(() => {
+    const background = theme.palette.background.default;
+    const mode = theme.palette.mode;
+    document.documentElement.style.backgroundColor = background;
+    document.body.style.backgroundColor = background;
+    document.documentElement.style.colorScheme = mode;
+  }, [theme.palette.background.default, theme.palette.mode]);
+
   return (
     <ThemeRegistry>
       <ThemeProvider theme={theme}>

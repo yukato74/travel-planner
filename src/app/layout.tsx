@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   themeColor: [
+    { color: '#121212' },
     { media: '(prefers-color-scheme: light)', color: '#F5F7FA' },
     { media: '(prefers-color-scheme: dark)', color: '#121212' },
   ],
@@ -27,19 +29,9 @@ export default function RootLayout({
     <html lang="en">
       <body style={{ fontFamily: '"Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif' }}>
         <AppProviders>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
+          <div className="app-shell">
             <AppHeader />
-            <main
-              style={{
-                flex: 1,
-                paddingTop: 'var(--app-header-height)',
-              }}
-            >
+            <main className="app-main">
               {children}
             </main>
           </div>
