@@ -20,6 +20,7 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOfflineStatus } from '@/components/providers/OfflineStatusProvider';
@@ -266,7 +267,8 @@ export function AppHeader() {
 
           <Stack spacing={1} sx={{ p: 2 }}>
             <Button
-              href="/dashboard"
+              component={Link}
+              href="/trip/new"
               variant="outlined"
               startIcon={<AddIcon />}
               onClick={() => setDrawerOpen(false)}

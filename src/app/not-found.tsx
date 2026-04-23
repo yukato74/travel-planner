@@ -12,8 +12,8 @@ export default function NotFoundPage() {
           Page not found
         </Typography>
         <Typography color="text.secondary">Check the URL or choose a trip from the menu.</Typography>
-        <Button component={Link} href="/dashboard" variant="contained">
-          Back to dashboard
+        <Button component={Link} href="/" variant="contained">
+          Back to home
         </Button>
       </Stack>
     </Container>

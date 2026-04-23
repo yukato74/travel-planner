@@ -6,8 +6,9 @@ It uses Supabase Auth (Email OTP: 6-digit code) with SSR session handling via `@
 ## UI Structure
 
 - `/`:
-  - If logged in: immediately redirects to `/dashboard`
-  - If logged out: shows only a centered `Login` button
+  - If logged in and trips exist: redirects to latest opened trip (`/trip/[id]`)
+  - If logged in and no trips: redirects to `/trip/new`
+  - If logged out: redirects to login
 - Header:
   - Hamburger menu + Drawer navigation
   - Trip switching from Drawer list
@@ -22,7 +23,7 @@ It uses Supabase Auth (Email OTP: 6-digit code) with SSR session handling via `@
 ## Auth Behavior
 
 - Login method: Email OTP (`signInWithOtp` + `verifyOtp`)
-- `/dashboard` requires login (middleware redirect to `/login`)
+- `/trip/new` requires login (middleware redirect to `/login`)
 - `/trip/[id]` can be viewed without login
 - Editing on `/trip/[id]` is owner-only
 
@@ -48,7 +49,7 @@ It uses Supabase Auth (Email OTP: 6-digit code) with SSR session handling via `@
 `trips` includes `owner_user_id`.
 
 - New trips save `owner_user_id = current user.id`
-- Dashboard lists only trips where `owner_user_id` matches the current user
+- Trip drawer lists only trips where `owner_user_id` matches the current user
 
 ## Supabase Setup
 
@@ -88,5 +89,5 @@ npm run lint
 
 - `/` Home
 - `/login` Email code login
-- `/dashboard` My trips (login required)
+- `/trip/new` New trip creation (login required)
 - `/trip/[id]` Trip details (viewable without login, editable by owner)

@@ -280,19 +280,19 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
 
   const handleDeletedTrip = async (deletedTripId: string) => {
     if (isOffline) {
-      router.push('/dashboard');
+      router.push('/');
       return;
     }
 
     const { client, error } = getSupabaseBrowserClient();
     if (!client) {
       setErrorMessage(error);
-      router.push('/dashboard');
+      router.push('/');
       return;
     }
 
     if (!viewerUserId) {
-      router.push('/dashboard');
+      router.push('/');
       return;
     }
 
@@ -307,7 +307,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
         }
       }
       setErrorMessage(result.error);
-      router.push('/dashboard');
+      router.push('/');
       return;
     }
 
@@ -317,7 +317,7 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
       return;
     }
 
-    router.push('/dashboard');
+    router.push('/');
   };
 
   if (loading) {
@@ -338,8 +338,8 @@ export function TripDetailView({ tripId }: TripDetailViewProps) {
             Trip not found
           </Typography>
           <Typography color="text.secondary">Check the URL or choose another trip from the menu.</Typography>
-          <Button component={Link} href="/dashboard" variant="contained">
-            Back to dashboard
+          <Button component={Link} href="/" variant="contained">
+            Back to home
           </Button>
         </Stack>
       </Container>
