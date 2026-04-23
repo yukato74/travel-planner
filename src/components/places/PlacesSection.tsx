@@ -1154,7 +1154,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
 
         <DragOverlay>
           {activePlace ? (
-            <Paper variant="outlined" sx={{ p: 1, minWidth: 220 }}>
+            <Paper variant="outlined" sx={{ p: 1, minWidth: 220, bgcolor: 'background.paper' }}>
               <Typography variant="body2" fontWeight={700}>
                 {activePlace.name}
               </Typography>

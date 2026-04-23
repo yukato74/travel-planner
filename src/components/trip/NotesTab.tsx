@@ -333,7 +333,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
       {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <Paper variant="outlined" sx={{ p: 1.5 }}>
+      <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'background.paper' }}>
         <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>Notes</Typography>
@@ -362,7 +362,7 @@ export function NotesTab({ tripId, canEdit = true, isOffline = false }: NotesTab
                   onClick={() => {
                     openPreviewNote(note);
                   }}
-                  sx={{ p: 1.25, cursor: 'pointer' }}
+                  sx={{ p: 1.25, cursor: 'pointer', bgcolor: 'background.paper' }}
                 >
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>

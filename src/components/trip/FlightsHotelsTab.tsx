@@ -915,7 +915,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
       {!canEdit && !isOffline && <Alert severity="info">Read-only mode.</Alert>}
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      <Paper variant="outlined" sx={{ p: 1.5 }}>
+      <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'background.paper' }}>
         <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>
@@ -939,7 +939,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   onClick={() => {
                     openPreviewFlight(flight);
                   }}
-                  sx={{ p: 1, cursor: 'pointer' }}
+                  sx={{ p: 1, cursor: 'pointer', bgcolor: 'background.paper' }}
                 >
                   <Stack spacing={0.5}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
@@ -989,7 +989,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         </Stack>
       </Paper>
 
-      <Paper variant="outlined" sx={{ p: 1.5 }}>
+      <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'background.paper' }}>
         <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>
             <Typography variant="h6" fontWeight={700}>
@@ -1012,7 +1012,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                   onClick={() => {
                     openPreviewHotel(hotel);
                   }}
-                  sx={{ p: 1.25, cursor: 'pointer' }}
+                  sx={{ p: 1.25, cursor: 'pointer', bgcolor: 'background.paper' }}
                 >
                   <Stack spacing={0.6}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" gap={1}>

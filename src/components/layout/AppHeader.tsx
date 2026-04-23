@@ -178,7 +178,7 @@ export function AppHeader() {
           zIndex: theme.zIndex.appBar,
           borderBottom: '1px solid',
           borderColor: alpha(theme.palette.primary.main, 0.24),
-          bgcolor: '#fff',
+          bgcolor: 'background.paper',
           backgroundImage: 'none',
           backdropFilter: 'none',
           WebkitBackdropFilter: 'none',

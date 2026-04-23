@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   --app-header-height: 56px;
 }
 
@@ -17,7 +17,14 @@ html,
 body {
   min-height: 100%;
   overflow-x: hidden;
-  background: #F5F7FA !important;
+  background: #F5F7FA;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background: #121212;
+  }
 }
 
 body {

@@ -25,7 +25,6 @@ export default function RootLayout({
         <AppProviders>
           <div
             style={{
-              backgroundColor: '#F5F7FA',
               display: 'flex',
               flexDirection: 'column',
             }}
