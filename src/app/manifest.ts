@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Travel Planner built with Next.js App Router and MUI',
     start_url: '/',
     display: 'standalone',
+    theme_color: '#F5F7FA',
     background_color: '#F5F7FA',
     icons: [
       {

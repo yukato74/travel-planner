@@ -74,7 +74,7 @@ export function TripInfoDialog({
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'var(--mobile-save-bottom-spacing)',
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {

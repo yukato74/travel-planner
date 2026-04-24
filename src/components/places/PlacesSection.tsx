@@ -37,7 +37,6 @@ import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Stack from '@mui/material/Stack';
@@ -419,7 +418,7 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'var(--mobile-save-bottom-spacing)',
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {
@@ -1400,11 +1399,12 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
                 value={addDate ?? ''}
                 onChange={(event) => setAddDate(event.target.value)}
                 required
+                SelectProps={{ native: true }}
               >
                 {dateOptions.map((date) => (
-                  <MenuItem key={date} value={date}>
+                  <option key={date} value={date}>
                     {date}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField
@@ -1470,11 +1470,11 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
           <DialogContent sx={mobileFormDialogContentSx}>
             <Stack spacing={1.5} mt={0.5}>
               <TextField label="Place name" value={editName} onChange={(event) => setEditName(event.target.value)} required />
-              <TextField select label="visit_date" value={editVisitDate} onChange={(event) => setEditVisitDate(event.target.value)} required>
+              <TextField select label="visit_date" value={editVisitDate} onChange={(event) => setEditVisitDate(event.target.value)} required SelectProps={{ native: true }}>
                 {dateOptions.map((date) => (
-                  <MenuItem key={date} value={date}>
+                  <option key={date} value={date}>
                     {date}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField label="Google Maps URL" value={editAddress} onChange={(event) => setEditAddress(event.target.value)} />

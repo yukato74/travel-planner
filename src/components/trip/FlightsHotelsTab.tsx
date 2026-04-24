@@ -18,7 +18,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import Slide from '@mui/material/Slide';
 import Stack from '@mui/material/Stack';
@@ -299,15 +298,16 @@ function DateTimePickerField({
           onChange={(event) => onChange(combineDateTimeLocal(event.target.value, safeTime))}
           required={required}
           fullWidth
+          SelectProps={{ native: true }}
           slotProps={{ inputLabel: { shrink: true } }}
         >
-          <MenuItem value="" disabled>
+          <option value="" disabled>
             Select date
-          </MenuItem>
+          </option>
           {dateOptions.map((dateOption) => (
-            <MenuItem key={dateOption} value={dateOption}>
+            <option key={dateOption} value={dateOption}>
               {dateOption}
-            </MenuItem>
+            </option>
           ))}
         </TextField>
         <TextField
@@ -394,7 +394,7 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
         bgcolor: 'background.paper',
         px: 2,
         pt: 1.25,
-        pb: 'var(--mobile-save-bottom-spacing)',
+        pb: 'calc(12px + env(safe-area-inset-bottom))',
       }
     : undefined;
   const modalNeutralIconButtonSx = {
@@ -1325,15 +1325,16 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={addHotel.checkInDate}
                 onChange={(e) => setAddHotel((prev) => ({ ...prev, checkInDate: e.target.value }))}
                 required
+                SelectProps={{ native: true }}
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                <MenuItem value="" disabled>
+                <option value="" disabled>
                   Select date
-                </MenuItem>
+                </option>
                 {flightDateOptions.map((dateOption) => (
-                  <MenuItem key={`add-checkin-${dateOption}`} value={dateOption}>
+                  <option key={`add-checkin-${dateOption}`} value={dateOption}>
                     {dateOption}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField
@@ -1342,15 +1343,16 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={addHotel.checkOutDate}
                 onChange={(e) => setAddHotel((prev) => ({ ...prev, checkOutDate: e.target.value }))}
                 required
+                SelectProps={{ native: true }}
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                <MenuItem value="" disabled>
+                <option value="" disabled>
                   Select date
-                </MenuItem>
+                </option>
                 {flightDateOptions.map((dateOption) => (
-                  <MenuItem key={`add-checkout-${dateOption}`} value={dateOption}>
+                  <option key={`add-checkout-${dateOption}`} value={dateOption}>
                     {dateOption}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField label="Memo" value={addHotel.memo} onChange={(e) => setAddHotel((prev) => ({ ...prev, memo: e.target.value }))} multiline minRows={3} />
@@ -1401,15 +1403,16 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={editingHotel?.checkInDate ?? ''}
                 onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkInDate: e.target.value } : prev))}
                 required
+                SelectProps={{ native: true }}
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                <MenuItem value="" disabled>
+                <option value="" disabled>
                   Select date
-                </MenuItem>
+                </option>
                 {flightDateOptions.map((dateOption) => (
-                  <MenuItem key={`edit-checkin-${dateOption}`} value={dateOption}>
+                  <option key={`edit-checkin-${dateOption}`} value={dateOption}>
                     {dateOption}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField
@@ -1418,15 +1421,16 @@ export function FlightsHotelsTab({ tripId, tripStartDate, tripEndDate, canEdit =
                 value={editingHotel?.checkOutDate ?? ''}
                 onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, checkOutDate: e.target.value } : prev))}
                 required
+                SelectProps={{ native: true }}
                 slotProps={{ inputLabel: { shrink: true } }}
               >
-                <MenuItem value="" disabled>
+                <option value="" disabled>
                   Select date
-                </MenuItem>
+                </option>
                 {flightDateOptions.map((dateOption) => (
-                  <MenuItem key={`edit-checkout-${dateOption}`} value={dateOption}>
+                  <option key={`edit-checkout-${dateOption}`} value={dateOption}>
                     {dateOption}
-                  </MenuItem>
+                  </option>
                 ))}
               </TextField>
               <TextField label="Memo" value={editingHotel?.memo ?? ''} onChange={(e) => setEditingHotel((prev) => (prev ? { ...prev, memo: e.target.value } : prev))} multiline minRows={3} />
