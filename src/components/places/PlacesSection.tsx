@@ -54,7 +54,7 @@ import { listHotelsByTripId } from '@/lib/hotels/service';
 import { getCachedFlights, getCachedHotels, getCachedPlaces, isLikelyOfflineError, setCachedFlights, setCachedHotels, setCachedPlaces } from '@/lib/offline/cache';
 import { addPlace, deletePlace, listPlacesByTripId, reorderPlaces, updatePlace } from '@/lib/places/service';
 import { getSupabaseBrowserClient } from '@/lib/supabase/browser-client';
-import { getTripItineraryOrder, updateTripItineraryOrder } from '@/lib/trips/service';
+import { getTripItineraryOrder, updateTripItineraryOrder, type ItineraryOrderByDay } from '@/lib/trips/service';
 import { Flight, Hotel, Place, PlaceOrderUpdate } from '@/lib/types/trip';
 
 type ItineraryFlightItem = {
@@ -130,6 +130,13 @@ function adjustInsertIndexAwayFromFlightGap(ids: string[], index: number, flight
     safety += 1;
   }
   return Math.max(0, Math.min(adjusted, ids.length));
+}
+
+function serializeItineraryOrder(orderByDay: ItineraryOrderByDay): string {
+  const normalizedEntries = Object.keys(orderByDay)
+    .sort()
+    .map((day) => [day, [...(orderByDay[day] ?? [])]]);
+  return JSON.stringify(normalizedEntries);
 }
 
 type PlacesSectionProps = {
@@ -374,6 +381,10 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
   const [dayItemOrderByDay, setDayItemOrderByDay] = useState<Record<string, string[]>>({});
   const [sharedOrderLoaded, setSharedOrderLoaded] = useState(false);
+  const itineraryOrderSaveInFlightRef = useRef(false);
+  const itineraryOrderPendingRef = useRef<ItineraryOrderByDay | null>(null);
+  const itineraryOrderLastSavedSnapshotRef = useRef('');
+  const itineraryOrderSaveEpochRef = useRef(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const mobileFormBoxSx = isMobile
@@ -525,6 +536,50 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     });
   }, [dateOptions]);
 
+  const flushItineraryOrderSave = useCallback(async () => {
+    if (itineraryOrderSaveInFlightRef.current) {
+      return;
+    }
+    const pending = itineraryOrderPendingRef.current;
+    if (!pending) {
+      return;
+    }
+
+    const saveEpoch = itineraryOrderSaveEpochRef.current;
+    itineraryOrderSaveInFlightRef.current = true;
+    itineraryOrderPendingRef.current = null;
+    const pendingSnapshot = serializeItineraryOrder(pending);
+
+    const { client, error } = getSupabaseBrowserClient();
+    if (saveEpoch !== itineraryOrderSaveEpochRef.current) {
+      return;
+    }
+    if (!client) {
+      itineraryOrderPendingRef.current = pending;
+      itineraryOrderSaveInFlightRef.current = false;
+      if (error) {
+        setErrorMessage(error);
+      }
+      return;
+    }
+
+    const result = await updateTripItineraryOrder(client, tripId, pending);
+    if (saveEpoch !== itineraryOrderSaveEpochRef.current) {
+      return;
+    }
+    itineraryOrderSaveInFlightRef.current = false;
+    if (result.error) {
+      itineraryOrderPendingRef.current = pending;
+      setErrorMessage(result.error);
+      return;
+    }
+    itineraryOrderLastSavedSnapshotRef.current = pendingSnapshot;
+
+    if (itineraryOrderPendingRef.current) {
+      void flushItineraryOrderSave();
+    }
+  }, [tripId]);
+
   const loadPlaces = useCallback(async () => {
     setLoading(true);
     setSharedOrderLoaded(false);
@@ -563,6 +618,8 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     if (!hotelsResult.error) {
       setCachedHotels(tripId, hotelsResult.data);
     }
+    itineraryOrderLastSavedSnapshotRef.current = serializeItineraryOrder(orderResult.data);
+    itineraryOrderPendingRef.current = null;
     setDayItemOrderByDay(orderResult.data);
     setSharedOrderLoaded(true);
     const joinedError = [placesResult.error, flightsResult.error, hotelsResult.error, orderResult.error].filter(Boolean).join(' ');
@@ -584,6 +641,13 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
   }, [loadPlaces]);
 
   useEffect(() => {
+    itineraryOrderSaveEpochRef.current += 1;
+    itineraryOrderSaveInFlightRef.current = false;
+    itineraryOrderPendingRef.current = null;
+    itineraryOrderLastSavedSnapshotRef.current = '';
+  }, [tripId]);
+
+  useEffect(() => {
     setDayItemOrderByDay((prev) => {
       const next: Record<string, string[]> = { ...prev };
       for (const day of dateOptions) {
@@ -601,19 +665,16 @@ export function PlacesSection({ tripId, dateOptions, canEdit = true, isOffline =
     if (!sharedOrderLoaded) {
       return;
     }
-    const { client, error } = getSupabaseBrowserClient();
-    if (!client) {
-      if (error) {
-        setErrorMessage(error);
-      }
+    const snapshot = serializeItineraryOrder(dayItemOrderByDay);
+    if (snapshot === itineraryOrderLastSavedSnapshotRef.current) {
       return;
     }
-    void updateTripItineraryOrder(client, tripId, dayItemOrderByDay).then((result) => {
-      if (result.error) {
-        setErrorMessage(result.error);
-      }
-    });
-  }, [dayItemOrderByDay, sharedOrderLoaded, tripId]);
+    if (itineraryOrderPendingRef.current && snapshot === serializeItineraryOrder(itineraryOrderPendingRef.current)) {
+      return;
+    }
+    itineraryOrderPendingRef.current = dayItemOrderByDay;
+    void flushItineraryOrderSave();
+  }, [dayItemOrderByDay, flushItineraryOrderSave, sharedOrderLoaded]);
 
   const persistReorder = async (updates: PlaceOrderUpdate[]) => {
     if (updates.length === 0) {
