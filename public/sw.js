@@ -1,6 +1,10 @@
-const SHELL_CACHE = 'travel-planner-shell-v2';
-const ASSET_CACHE = 'travel-planner-asset-v2';
+const SHELL_CACHE = 'travel-planner-shell-v3';
+const ASSET_CACHE = 'travel-planner-asset-v3';
 const SHELL_URLS = ['/', '/manifest.webmanifest', '/icons/icon-192.svg', '/icons/icon-512.svg'];
+
+function isCacheableResponse(response) {
+  return response.ok && response.type === 'basic';
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -34,6 +38,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
+          if (!isCacheableResponse(response)) {
+            return response;
+          }
+
           const cloned = response.clone();
           event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.put(request, cloned)));
           return response;
@@ -60,6 +68,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
+          if (!isCacheableResponse(response)) {
+            return response;
+          }
+
           const cloned = response.clone();
           event.waitUntil(caches.open(ASSET_CACHE).then((cache) => cache.put(request, cloned)));
           return response;
