@@ -182,11 +182,19 @@ function FlightItem({
   item: ItineraryFlightItem;
   onClick: () => void;
 }) {
+  const { setNodeRef } = useDroppable({
+    id: item.id,
+    data: {
+      type: 'flight',
+      visitDate: item.visitDate,
+    },
+  });
   const [departureCode, departureDateTime = ''] = item.departureLabel.split(' · ');
   const [arrivalCode, arrivalDateTime = ''] = item.arrivalLabel.split(' · ');
 
   return (
     <Paper
+      ref={setNodeRef}
       variant="outlined"
       onClick={onClick}
       sx={{
