@@ -14,7 +14,8 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -182,7 +183,7 @@ function FlightItem({
   item: ItineraryFlightItem;
   onClick: () => void;
 }) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, transform, transition } = useSortable({
     id: item.id,
     data: {
       type: 'flight',
@@ -205,6 +206,8 @@ function FlightItem({
         borderColor: 'divider',
         bgcolor: 'background.paper',
         cursor: 'pointer',
+        transform: CSS.Translate.toString(transform),
+        transition,
       }}
     >
       <Stack spacing={0.5}>
@@ -311,7 +314,7 @@ function DaySection({
           </Button>
         </Stack>
 
-        <SortableContext items={orderedItemIds.filter((id) => places.some((place) => place.id === id))} strategy={verticalListSortingStrategy}>
+        <SortableContext items={orderedItemIds} strategy={verticalListSortingStrategy}>
           <List disablePadding>
             {places.length === 0 && flights.length === 0 ? (
               <Typography variant="body2" color="text.secondary">
